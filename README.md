@@ -4,11 +4,21 @@ Multi-display window manager for macOS with dedicated support for ultrawide moni
 
 ## Features
 
+### Window Management
 - **Ultrawide-Optimized Layouts**: Center-focused 860px + 1720px + 860px layout system
 - **Multi-Display Support**: Adaptive layouts for ultrawide and MacBook displays
 - **Vim-Style Navigation**: h/j/k/l keyboard shortcuts for window positioning
 - **Smart Window Organizer**: Automatically arranges multiple windows based on count
+- **Layout Cycling**: Cycle through multiple configurations for 2/3 window layouts
 - **Monitor Switching**: Move windows between displays with arrow keys
+
+### Notifications
+- **Enhanced macOS Notifications**: Rich notifications with action buttons
+- **Tmux Integration**: Auto-detect tmux context and focus exact session/window/pane
+- **CLI Command**: `notify-claude` for easy integration with tools and hooks
+- **Claude Code Integration**: Works seamlessly with Claude Code hooks
+
+### Development
 - **Debug Logging**: Comprehensive logging for troubleshooting
 - **Auto-Reload**: Configuration reloads automatically on file changes
 - **Code Quality**: Linted with luacheck and formatted with stylua
@@ -174,6 +184,76 @@ On non-ultrawide displays, layouts are simplified to **proportional halves**:
 - l/p/o → Right 50%
 - j/k/i → Full 100%
 
+## Notifications with Tmux Integration
+
+Enhanced macOS notifications with automatic tmux session focusing.
+
+### Features
+
+- **Rich Notifications**: Native macOS notifications with action buttons
+- **Tmux Auto-Detection**: Automatically captures current tmux session:window.pane
+- **One-Click Focus**: "Focus Session" button switches to exact tmux location
+- **Terminal Auto-Detection**: Supports Ghostty, iTerm2, kitty, Alacritty, Terminal
+- **Claude Code Integration**: Works seamlessly with Claude Code hooks
+
+### CLI Usage
+
+```bash
+# Built-in notification types
+notify-claude task-complete ["custom message"]
+notify-claude permission ["custom message"]
+notify-claude error ["custom message"]
+notify-claude waiting ["custom message"]
+
+# Custom notifications
+notify-claude "Custom Title" "Custom Message" [sound]
+```
+
+### Examples
+
+```bash
+# Task completion (Hero sound)
+notify-claude task-complete "Build finished successfully"
+
+# Permission request (Glass sound)
+notify-claude permission "Approve git commit?"
+
+# Custom with sound
+notify-claude "Deploy Complete" "Production is live!" "Ping"
+```
+
+### Claude Code Integration
+
+Add to your `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "Stop": [{
+      "hooks": [{
+        "type": "command",
+        "command": "/Users/YOUR_USERNAME/.local/bin/notify-claude task-complete"
+      }]
+    }],
+    "Notification": [{
+      "hooks": [{
+        "type": "command",
+        "command": "/Users/YOUR_USERNAME/.local/bin/notify-claude permission"
+      }]
+    }]
+  }
+}
+```
+
+When Claude finishes a task or requests permission, you'll get a notification with a button to jump back to the exact tmux session!
+
+### How It Works
+
+1. **Send Notification**: `notify-claude` captures current tmux context (session:window.pane)
+2. **Notification Appears**: Shows with "Focus Session" action button
+3. **Click Button**: Hammerspoon focuses terminal app and runs `tmux select-window -t session:window && tmux select-pane -t pane`
+4. **You're There**: Terminal focused on exact tmux location
+
 ## Project Structure
 
 ```
@@ -184,7 +264,8 @@ On non-ultrawide displays, layouts are simplified to **proportional halves**:
 │   ├── displays.lua         # Display detection
 │   ├── layouts.lua          # Layout definitions
 │   ├── window-manager.lua   # Core window logic
-│   └── keybindings.lua      # Keyboard shortcuts
+│   ├── keybindings.lua      # Keyboard shortcuts
+│   └── notifications.lua    # Notification system with tmux focus
 ├── scripts/
 │   ├── install.sh           # Setup script
 │   ├── lint.sh              # Run linter
