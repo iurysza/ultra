@@ -29,8 +29,16 @@ logger.info("Hammerspoon Window Manager Starting")
 logger.info("========================================")
 
 -- Log system info
-logger.info("macOS Version: " .. hs.host.operatingSystemVersion()["productVersion"])
-logger.info("Hammerspoon Version: " .. hs.processInfo["version"])
+local osVersion = hs.host.operatingSystemVersion()
+logger.info(
+  string.format(
+    "macOS Version: %d.%d.%d",
+    osVersion.major,
+    osVersion.minor,
+    osVersion.patch
+  )
+)
+logger.info("Hammerspoon Version: " .. hs.processInfo.version)
 
 -- Detect displays
 local allDisplays = displays.getAllDisplays()
