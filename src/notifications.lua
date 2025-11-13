@@ -87,7 +87,7 @@ function M.send(opts)
     hasButton = hasTmux -- Default: show button if tmux context provided
   end
 
-  local withdrawAfter = opts.autoWithdraw or (hasTmux and 0 or 5)
+  local withdrawAfter = opts.autoWithdraw or 5
 
   -- Generate unique ID for this notification
   local notifId = tostring(os.time()) .. math.random(1000, 9999)

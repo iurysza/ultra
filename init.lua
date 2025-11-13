@@ -19,6 +19,7 @@ local displays = require("src.displays")
 require("src.layouts") -- Loaded for use in other modules
 require("src.window-manager") -- Loaded for use in keybindings
 local keybindings = require("src.keybindings")
+local appSpecificKeys = require("src.app-specific-keys")
 local notifications = require("src.notifications")
 
 -- Initialize logger
@@ -59,11 +60,14 @@ end
 -- Setup keybindings
 keybindings.setup()
 
+-- Setup app-specific keybindings
+appSpecificKeys.setup()
+
 -- Expose notifications globally for IPC access
 _G.notifications = notifications
 
 -- Show success notification
-hs.alert.show("Hammerspoon Window Manager Loaded")
+hs.alert.show("Hammerspoon Window Manager Loaded", 5)
 logger.info("Window Manager loaded successfully")
 
 -- Watch for display changes
@@ -71,7 +75,7 @@ local displayWatcher = hs.screen.watcher.new(function()
   logger.info("Display configuration changed, updating...")
   local newDisplays = displays.getAllDisplays()
   logger.info(string.format("Now have %d display(s)", #newDisplays))
-  hs.alert.show("Display configuration updated")
+  hs.alert.show("Display configuration updated", 5)
 end)
 displayWatcher:start()
 

@@ -1,8 +1,8 @@
 # Semantic Map: Hammerspoon Window Manager
 
-**Type**: macOS automation tool for window management
+**Type**: macOS automation tool for window management + app launching
 **Core Tech**: Lua + Hammerspoon framework
-**Primary Use**: Multi-display window management w/ ultrawide monitor optimization
+**Primary Use**: Multi-display window management w/ ultrawide monitor optimization + smart app toggling
 
 ---
 
@@ -24,6 +24,43 @@ Key functions:
 - `organizeWindows()`: Smart organize w/ cycling through configs
 - `minimizeAll()`: Show desktop
 - `showAppWindows()`: App Exposé for current app
+
+### App Launcher (Smart Toggle)
+**Location**: `src/app-launcher.lua`
+
+Smart application launcher with 3-state toggle behavior:
+- **Launch**: Start app if not running
+- **Focus**: Bring to foreground if running but hidden
+- **Hide**: Minimize/hide if already frontmost
+
+Toggle strategies:
+- **Bundle ID**: Primary method for most apps (`toggleApp(bundleID)`)
+- **App Name**: Fallback for apps w/o bundle ID (`toggleAppByName(name)`)
+- **AppleScript**: Special cases (e.g., scrcpy window focus)
+
+Key functions:
+- `toggleApp(bundleID)`: Smart 3-state toggle by bundle ID
+- `toggleAppByName(appName)`: Toggle by app name (fallback)
+- `executeAppleScript(script)`: Execute AppleScript commands
+- `togglePlayPause()`: Media control (Play/Pause system key)
+
+### App-Specific Keybindings
+**Location**: `src/app-specific-keys.lua`
+
+Context-aware keybindings that activate only in specific apps:
+- **Dynamic Enable/Disable**: Hotkeys enabled only when target app is frontmost
+- **Application Watcher**: Monitors app activation events
+- **Obsidian Integration**: Vim-style navigation + custom shortcuts
+
+Current implementations:
+- **Obsidian**:
+  - Ctrl+h/j/k/l → Arrow keys (vim navigation)
+  - Cmd+` → Forward delete
+  - Cmd+w → Cmd+= (zoom in)
+  - Cmd+s → Cmd+- (zoom out)
+
+Key functions:
+- `setup()`: Initialize app-specific keybindings + watcher
 
 ### Display Management
 **Location**: `src/displays.lua`
@@ -66,6 +103,7 @@ Enhanced macOS notifications w/ tmux integration:
 - **Terminal Auto-Detection**: Supports Ghostty, iTerm2, kitty, Alacritty, Terminal
 - **Claude Code Integration**: Task completion, permission, error notifications
 - **Global State Management**: Tracks tmux targets per notification ID
+- **Auto-Dismiss**: Notifications auto-withdraw after 5 seconds
 
 Key functions:
 - `send(opts)`: Generic notification w/ optional tmux context
@@ -74,7 +112,7 @@ Key functions:
 - `error(message, tmuxTarget)`: Error notifications
 - `waiting(message, tmuxTarget)`: Waiting for input
 
-CLI integration: `/Users/YOUR_USERNAME/.local/bin/notify-claude`
+CLI integration: `~/.local/bin/notify-claude` (via scripts/)
 
 ---
 
@@ -84,7 +122,7 @@ CLI integration: `/Users/YOUR_USERNAME/.local/bin/notify-claude`
 **Location**: `init.lua`
 
 Entry point & system bootstrap:
-- **Module Loading**: logger → displays → layouts → window-manager → keybindings → notifications
+- **Module Loading**: logger → displays → layouts → window-manager → keybindings → app-specific-keys → notifications
 - **Configuration**: Debug, log file, max log lines
 - **System Detection**: OS version, display count, display metadata
 - **Watchers**: Display changes, config file changes (auto-reload)
@@ -92,21 +130,28 @@ Entry point & system bootstrap:
 - **Global Exposure**: `_G.notifications` for IPC access
 
 ### Input Handling Layer
-**Location**: `src/keybindings.lua`
+**Location**: `src/keybindings.lua`, `src/app-specific-keys.lua`
 
-Keyboard shortcut mappings using Hyper key (Shift+Cmd+Ctrl+Opt):
+**Global Keybindings** (`keybindings.lua`):
+Hyper key (Shift+Cmd+Ctrl+Opt) shortcuts:
 - **Window Positioning**: h/j/k/l/y/u/i/o/p (vim-style)
 - **Monitor Switching**: Left/Right arrows
-- **Utilities**: \ (organize), = (minimize), ] (App Exposé)
-- **System**: r (reload config)
+- **Utilities**: \ (organize), = (minimize), ] (App Exposé), r (reload)
+- **App Launchers**: F1-F12, ;, m, 5 (smart toggle)
+
+**App-Specific Keybindings** (`app-specific-keys.lua`):
+Context-aware shortcuts that only work in specific apps:
+- Dynamic enable/disable based on frontmost app
+- Currently: Obsidian vim navigation + custom shortcuts
 
 Requires Karabiner-Elements to map Caps Lock → Hyper.
 
 ### Core Logic Layer
-**Location**: `src/window-manager.lua`, `src/displays.lua`, `src/layouts.lua`
+**Location**: `src/window-manager.lua`, `src/app-launcher.lua`, `src/displays.lua`, `src/layouts.lua`
 
-Business logic for window management:
+Business logic:
 - **Window Manager**: Core positioning, movement, organization algorithms
+- **App Launcher**: Smart toggle logic (launch → focus → hide)
 - **Displays**: Hardware detection, screen classification
 - **Layouts**: Geometry calculations, layout definitions
 
@@ -128,6 +173,7 @@ Supporting infrastructure:
 Every module logs:
 - Initialization steps
 - Window/display operations
+- App launches/toggles
 - Errors and warnings
 - User actions (keybindings)
 
@@ -142,14 +188,16 @@ Config points:
 - Ultrawide constants (3440x1440)
 - Layout pixel definitions
 - Hyper key definition
+- Notification auto-dismiss timeout (5s)
 
 ### Error Handling
 **Files**: All modules
 
 Patterns:
-- Nil checks for windows, screens
+- Nil checks for windows, screens, apps
 - Layout validation
 - Display detection failures
+- Bundle ID validation
 - Alert notifications on errors
 
 ---
@@ -169,6 +217,39 @@ displays.lua: getCurrentDisplay(win)
 layouts.lua: getLayout("left", screen)
   ↓
 window-manager.lua: win:setFrame(layout)
+```
+
+### App Launcher Toggle (3-State)
+```
+User presses Hyper+F10 (Obsidian)
+  ↓
+keybindings.lua: hotkey callback
+  ↓
+app-launcher.lua: toggleApp("md.obsidian")
+  ↓
+Check app state:
+  - Not running? → hs.application.launchOrFocusByBundleID()
+  - Running but not frontmost? → Focus app
+  - Already frontmost? → app:hide()
+  ↓
+Log action to debug.log
+```
+
+### App-Specific Keybinding Activation
+```
+User switches to Obsidian
+  ↓
+app-specific-keys.lua: appWatcher callback (activated event)
+  ↓
+Check if app:bundleID() == "md.obsidian"
+  ↓
+Enable all Obsidian hotkeys (Ctrl+hjkl, Cmd+`, etc.)
+  ↓
+User presses Ctrl+h
+  ↓
+app-specific-keys.lua: hotkey callback
+  ↓
+hs.eventtap.keyStroke({}, "left")  -- Send arrow key
 ```
 
 ### Smart Organization (Cycling)
@@ -217,7 +298,9 @@ Store tmux target globally (notificationTargets[notifId])
   ↓
 macOS notification shown w/ "Focus Session" button
   ↓
-User clicks button
+Auto-dismiss after 5 seconds (unless user interacts)
+  ↓
+User clicks button (optional)
   ↓
 Callback retrieves tmux target from global storage
   ↓
@@ -236,7 +319,7 @@ displays.lua: getAllDisplays()
   ↓
 Log new display count
   ↓
-Alert user
+Alert user (auto-dismiss after 5s)
 ```
 
 ---
@@ -249,14 +332,15 @@ Alert user
 │  (Bootstrap, IPC, Watchers, Module Loading, Global Exposure) │
 └────────────────────┬────────────────────────────────────────┘
                      │
-        ┌────────────┴────────────┐
-        │                         │
-        ▼                         ▼
-┌──────────────┐          ┌──────────────┐
-│ keybindings  │          │ notifications│
-│  (Input)     │          │ (IPC/CLI)    │
-└──────┬───────┘          └──────────────┘
-       │
+        ┌────────────┴────────────┬──────────────────┐
+        │                         │                   │
+        ▼                         ▼                   ▼
+┌──────────────┐          ┌──────────────┐    ┌──────────────┐
+│ keybindings  │          │app-specific  │    │ notifications│
+│  (Global)    │          │  -keys       │    │ (IPC/CLI)    │
+└──────┬───────┘          │(Context-     │    └──────────────┘
+       │                  │ aware)       │
+       │                  └──────────────┘
        ▼
 ┌──────────────────────────────────────────────┐
 │          window-manager.lua                   │
@@ -264,12 +348,12 @@ Alert user
 └────────┬─────────────────────┬────────────────┘
          │                     │
          ▼                     ▼
-    ┌─────────┐           ┌─────────┐
-    │displays │           │ layouts │
-    │(Hardware)           │(Geometry)│
-    └─────────┘           └─────────┘
-         │                     │
-         └──────────┬──────────┘
+┌──────────────────┐      ┌─────────┐           ┌─────────┐
+│  app-launcher    │      │displays │           │ layouts │
+│(Launch/Focus/Hide)      │(Hardware)           │(Geometry)│
+└──────────────────┘      └─────────┘           └─────────┘
+         │                     │                     │
+         └──────────┬──────────┴─────────────────────┘
                     ▼
             ┌───────────────┐
             │    logger     │
@@ -287,8 +371,11 @@ init.lua
 ├── displays.lua (requires: logger)
 ├── layouts.lua (requires: displays, logger)
 ├── window-manager.lua (requires: displays, layouts, logger)
-├── keybindings.lua (requires: window-manager, logger)
+├── keybindings.lua (requires: window-manager, app-launcher, logger)
+├── app-specific-keys.lua (requires: logger)
 └── notifications.lua (requires: logger)
+
+app-launcher.lua (standalone, requires: logger)
 ```
 
 ---
@@ -306,36 +393,54 @@ Cycle state tracked per display + window count:
 cycleState["Display Name_3"] = 2  -- Display "X", 3 windows, config 2
 ```
 
-### 3. Global IPC Exposure
+### 3. Smart Toggle State Machine
+App launcher uses 3-state logic:
+```lua
+Not Running → Launch
+Running + Hidden → Focus
+Running + Frontmost → Hide
+```
+
+### 4. Context-Aware Keybindings
+App-specific hotkeys dynamically enabled/disabled:
+```lua
+appWatcher → Check bundleID → Enable/Disable hotkeys
+```
+
+### 5. Global IPC Exposure
 Notifications exposed globally for CLI access:
 ```lua
 _G.notifications = notifications  -- Accessible via hs command-line
 ```
 
-### 4. Declarative Keybindings
+### 6. Declarative Keybindings
 All shortcuts use Hyper key, mapped in single function:
 ```lua
 hs.hotkey.bind(hyper, "h", function() wm.positionWindow("left") end)
+hs.hotkey.bind(hyper, "f10", function() appLauncher.toggleApp("md.obsidian") end)
 ```
 
-### 5. Separation of Concerns
+### 7. Separation of Concerns
 - **Displays**: "What hardware do we have?"
 - **Layouts**: "What geometries are available?"
 - **Window Manager**: "Where should windows go?"
+- **App Launcher**: "How do we launch/focus/hide apps?"
 - **Keybindings**: "What keys trigger what?"
+- **App-Specific Keys**: "What keys work in which apps?"
 
 ---
 
 ## External Integrations
 
 ### Karabiner-Elements
-Maps Caps Lock → Hyper key (Shift+Cmd+Ctrl+Opt)
+Maps Caps Lock → Hyper key (Shift+Cmd+Ctrl+Opt), Esc when tapped alone
 **Config**: `~/.config/karabiner/karabiner.json`
+**Note**: Only handles key mapping; app launchers and Obsidian bindings now in Hammerspoon
 
 ### Claude Code
 Notification hooks for task completion, permission requests
 **Config**: `~/.claude/settings.json` (hooks section)
-**CLI**: `/Users/YOUR_USERNAME/.local/bin/notify-claude`
+**CLI**: `~/.local/bin/notify-claude`
 
 ### Tmux
 Auto-detects tmux context (session:window.pane)
@@ -353,17 +458,21 @@ Auto-detects running terminal (Ghostty, iTerm2, kitty, Alacritty, Terminal)
 .
 ├── init.lua                    # Bootstrap & config
 ├── src/
+│   ├── app-launcher.lua        # Smart app toggle (launch/focus/hide)
+│   ├── app-specific-keys.lua   # Context-aware keybindings (Obsidian, etc.)
 │   ├── displays.lua            # Display detection (3440x1440 check)
-│   ├── keybindings.lua         # Hyper key shortcuts
+│   ├── keybindings.lua         # Hyper key shortcuts (window + app launchers)
 │   ├── layouts.lua             # Layout definitions (860+1720+860)
 │   ├── logger.lua              # File logging w/ rotation
-│   ├── notifications.lua       # macOS notifications + tmux focus
+│   ├── notifications.lua       # macOS notifications + tmux focus (5s auto-dismiss)
 │   └── window-manager.lua      # Core positioning & organization
 ├── scripts/
 │   ├── install.sh              # Setup script
 │   ├── lint.sh                 # luacheck
-│   └── format.sh               # stylua
+│   ├── format.sh               # stylua
+│   └── notify-claude           # CLI notification tool
 ├── docs/tracker/               # Task tracking
+├── .docs/                      # Hidden docs (SEMANTIC_MAP.md)
 ├── .luacheckrc                 # Linter config
 ├── stylua.toml                 # Formatter config
 ├── .editorconfig               # Editor config
@@ -386,6 +495,8 @@ Auto-detects running terminal (Ghostty, iTerm2, kitty, Alacritty, Terminal)
 - **centerFocus**: 1200px centered (ultrawide) / 100% (MacBook)
 
 ### Keybindings (all use Hyper = Caps Lock)
+
+**Window Management:**
 - **h/j/k/l**: Vim-style window positioning
 - **y/u/i/o/p**: Additional window positions
 - **Left/Right**: Move to adjacent display
@@ -393,6 +504,26 @@ Auto-detects running terminal (Ghostty, iTerm2, kitty, Alacritty, Terminal)
 - **=**: Minimize all (show desktop)
 - **]**: App Exposé
 - **r**: Reload config
+
+**App Launchers (Smart Toggle):**
+- **F1**: Play/Pause
+- **F2**: Ghostty
+- **F3**: Cursor
+- **F4**: Spotify
+- **F8**: Slack
+- **F9**: Android Studio
+- **F10**: Obsidian
+- **F11**: Chrome
+- **F12**: WhatsApp
+- **;**: Msty
+- **m**: Google Meet
+- **5**: scrcpy
+
+**Obsidian-Specific (only when Obsidian is frontmost):**
+- **Ctrl+h/j/k/l**: Arrow navigation (vim-style)
+- **Cmd+`**: Forward delete
+- **Cmd+w**: Zoom in (remapped to Cmd+=)
+- **Cmd+s**: Zoom out (remapped to Cmd+-)
 
 ### Smart Organize Cycling
 - **1 window**: Full screen (no cycling)
@@ -402,4 +533,24 @@ Auto-detects running terminal (Ghostty, iTerm2, kitty, Alacritty, Terminal)
 
 ---
 
-**Generated at commit**: `aea679f8acda618bcba5b0b2e9f430eaf533ba19`
+## Recent Changes
+
+### App Launcher System (Current Session)
+- **New Module**: `app-launcher.lua` with 3-state toggle logic
+- **Smart Behavior**: Launch → Focus → Hide based on app state
+- **12 App Shortcuts**: F1-F12, semicolon, m, 5 keys
+- **Integration**: Migrated from Karabiner to Hammerspoon
+
+### App-Specific Keybindings (Current Session)
+- **New Module**: `app-specific-keys.lua` with dynamic hotkey management
+- **Obsidian Integration**: Vim navigation + custom shortcuts
+- **Application Watcher**: Auto-enable/disable based on frontmost app
+- **Extensible Design**: Easy to add bindings for other apps
+
+### Notification Auto-Dismiss (Current Session)
+- **5-Second Timeout**: All notifications now auto-dismiss
+- **Consistent UX**: Applies to all notification types (task complete, errors, etc.)
+
+---
+
+**Generated at commit**: `6eb2a7853d154699f5ff66748365f0e5e66ae392`
