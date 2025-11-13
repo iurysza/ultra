@@ -1,0 +1,16 @@
+# Debug logs
+debug.log
+*.log
+
+# macOS
+.DS_Store
+
+# Hammerspoon
+*.spoon
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
