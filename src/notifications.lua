@@ -5,6 +5,9 @@
 local logger = require("src.logger")
 local M = {}
 
+-- Store tmux targets for notifications (keyed by notification ID)
+local notificationTargets = {}
+
 --- Get terminal application name (auto-detect)
 --- @return string Terminal app name
 local function getTerminalApp()
@@ -86,27 +89,51 @@ function M.send(opts)
 
   local withdrawAfter = opts.autoWithdraw or (hasTmux and 0 or 5)
 
+  -- Generate unique ID for this notification
+  local notifId = tostring(os.time()) .. math.random(1000, 9999)
+
+  -- Store tmux target globally
+  if opts.tmuxTarget and opts.tmuxTarget ~= "" then
+    notificationTargets[notifId] = opts.tmuxTarget
+    logger.debug(
+      string.format("Stored tmux target for notification %s: %s", notifId, opts.tmuxTarget)
+    )
+  end
+
   -- Create notification
   local notification = hs.notify.new(function(notif)
-    -- Callback when notification is clicked
-    logger.info(string.format("Notification activated! Type: %s", tostring(notif:activationType())))
+    local success, err = pcall(function()
+      -- Callback when notification is clicked
+      logger.info(
+        string.format("Notification activated! Type: %s", tostring(notif:activationType()))
+      )
 
-    local target = notif:userInfo()["tmuxTarget"]
-    logger.debug(string.format("Tmux target from userInfo: %s", target or "none"))
+      -- Retrieve tmux target from global storage
+      local target = notificationTargets[notifId]
+      logger.info(string.format("Retrieved tmux target for %s: '%s'", notifId, tostring(target)))
 
-    -- Handle both button click and notification body click
-    local actType = notif:activationType()
-    if
-      actType == hs.notify.activationTypes.actionButtonClicked
-      or actType == hs.notify.activationTypes.contentsClicked
-    then
-      if target and target ~= "" then
-        focusTmuxTarget(target)
-      else
-        logger.warn("No tmux target available, just focusing terminal")
-        local termApp = getTerminalApp()
-        hs.application.launchOrFocus(termApp)
+      -- Handle both button click and notification body click
+      local actType = notif:activationType()
+      if
+        actType == hs.notify.activationTypes.actionButtonClicked
+        or actType == hs.notify.activationTypes.contentsClicked
+      then
+        if target and target ~= "" then
+          logger.info(string.format("Calling focusTmuxTarget with: %s", target))
+          focusTmuxTarget(target)
+        else
+          logger.warn("No tmux target, focusing terminal only")
+          local termApp = getTerminalApp()
+          hs.application.launchOrFocus(termApp)
+        end
+
+        -- Clean up after use
+        notificationTargets[notifId] = nil
       end
+    end)
+
+    if not success then
+      logger.error(string.format("Notification callback error: %s", tostring(err)))
     end
   end, {
     title = opts.title,
@@ -115,13 +142,16 @@ function M.send(opts)
     hasActionButton = hasButton,
     actionButtonTitle = opts.buttonTitle or "Focus Session",
     withdrawAfter = withdrawAfter,
-    userInfo = {
-      tmuxTarget = opts.tmuxTarget or "",
-    },
   })
 
   notification:send()
-  logger.debug("Notification sent successfully")
+  logger.debug(
+    string.format(
+      "Notification sent (ID: %s) with tmux target: %s",
+      notifId,
+      opts.tmuxTarget or "none"
+    )
+  )
 end
 
 --- Send notification for Claude task completion
