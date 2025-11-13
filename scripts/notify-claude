@@ -1,0 +1,98 @@
+#!/bin/bash
+# notify-claude - Enhanced Claude Code notifications via Hammerspoon
+# Usage: notify-claude <type|title> [message] [options]
+
+set -e
+
+# Auto-detect tmux context if running in tmux
+get_tmux_target() {
+    if [ -n "$TMUX" ]; then
+        local session=$(tmux display-message -p '#S')
+        local window=$(tmux display-message -p '#I')
+        local pane=$(tmux display-message -p '#P')
+        echo "${session}:${window}.${pane}"
+    fi
+}
+
+# Get tmux window name for display
+get_tmux_window_name() {
+    if [ -n "$TMUX" ]; then
+        tmux display-message -p '#W'
+    fi
+}
+
+# Build and send notification via Hammerspoon IPC
+send_notification() {
+    local title="$1"
+    local message="$2"
+    local sound="${3:-Glass}"
+    local tmux_target="${4:-}"
+
+    # Add window name to message if available
+    if [ -n "$tmux_target" ]; then
+        local window_name=$(get_tmux_window_name)
+        if [ -n "$window_name" ]; then
+            message="${message}"$'\n\n'"${window_name}"
+        fi
+    fi
+
+    # Build Lua command for Hammerspoon
+    local lua_cmd="notifications.send({
+        title = [[$title]],
+        message = [[$message]],
+        sound = \"$sound\",
+        tmuxTarget = [[$tmux_target]]
+    })"
+
+    # Send to Hammerspoon via IPC
+    hs -c "$lua_cmd"
+}
+
+# Parse arguments
+case "$1" in
+    "task-complete"|"complete")
+        TMUX_TARGET=$(get_tmux_target)
+        send_notification \
+            "✅ Complete" \
+            "${2:-}" \
+            "Hero" \
+            "$TMUX_TARGET"
+        ;;
+
+    "permission"|"permission-required")
+        TMUX_TARGET=$(get_tmux_target)
+        send_notification \
+            "⚠️ Permission Required" \
+            "${2:-}" \
+            "Glass" \
+            "$TMUX_TARGET"
+        ;;
+
+    "error")
+        TMUX_TARGET=$(get_tmux_target)
+        send_notification \
+            "❌ Error" \
+            "${2:-}" \
+            "Basso" \
+            "$TMUX_TARGET"
+        ;;
+
+    "waiting")
+        TMUX_TARGET=$(get_tmux_target)
+        send_notification \
+            "⏳ Waiting" \
+            "${2:-}" \
+            "Ping" \
+            "$TMUX_TARGET"
+        ;;
+
+    "custom"|*)
+        # Custom notification: notify-claude "Title" "Message" [sound]
+        TITLE="$1"
+        MESSAGE="${2:-}"
+        SOUND="${3:-Glass}"
+        TMUX_TARGET=$(get_tmux_target)
+
+        send_notification "$TITLE" "$MESSAGE" "$SOUND" "$TMUX_TARGET"
+        ;;
+esac

@@ -49,7 +49,18 @@ fi
 
 # Make scripts executable
 chmod +x "$HOME/.config/hammerspoon/scripts/"*.sh
+chmod +x "$HOME/.config/hammerspoon/scripts/notify-claude"
 echo "✓ Scripts made executable"
+
+# Setup notify-claude CLI
+mkdir -p "$HOME/.local/bin"
+if [ ! -L "$HOME/.local/bin/notify-claude" ]; then
+  echo "Creating symlink ~/.local/bin/notify-claude"
+  ln -sf "$HOME/.config/hammerspoon/scripts/notify-claude" "$HOME/.local/bin/notify-claude"
+  echo "✓ notify-claude CLI installed"
+else
+  echo "✓ notify-claude CLI already installed"
+fi
 
 echo ""
 echo "=================================="
