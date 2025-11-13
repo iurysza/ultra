@@ -121,10 +121,33 @@ All shortcuts use **Hyper** (Caps Lock via Karabiner) + key.
 
 | Shortcut | Action |
 |----------|--------|
-| **Hyper+=** | Smart organize all windows |
-| **Hyper+\\** | Minimize all windows (show desktop) |
+| **Hyper+\\** | Smart organize with cycling (see below) |
+| **Hyper+=** | Minimize all windows (show desktop) |
 | **Hyper+]** | Show all windows of current app (App Exposé) |
 | **Hyper+R** | Reload Hammerspoon configuration |
+
+### Smart Organize Cycling (Hyper+\\)
+
+Press **Hyper+\\** repeatedly to cycle through different layout configurations based on window count:
+
+**1 Window:**
+- Full screen (no cycling)
+
+**2 Windows:**
+1. Focused 2/3 left + right 1/3 (2580px + 860px)
+2. Equal 50/50 split (1720px + 1720px)
+3. Focused 2/3 right + left 1/3 (860px + 2580px)
+
+**3 Windows:**
+1. Focused center + sides (center 1720px, sides 860px)
+2. Focused 2/3 left + 2 stacked right (2580px + 860px stacked)
+3. All equal thirds (860px each)
+4. Focused 2/3 right + 2 stacked left (860px stacked + 2580px)
+
+**4+ Windows:**
+- Focused left 2/3 + others stacked right (no cycling)
+
+The **currently active window** always gets the "focused" (larger) position. Cycle state is tracked per-display and per-window-count.
 
 ## Layout System
 
@@ -150,17 +173,6 @@ On non-ultrawide displays, layouts are simplified to **proportional halves**:
 - h/y/u → Left 50%
 - l/p/o → Right 50%
 - j/k/i → Full 100%
-
-### Smart Window Organizer (Hyper+=)
-
-Automatically arranges windows based on count:
-
-- **1 window**: Center position
-- **2 windows**: Focused gets left 2/3, other gets right 1/3
-- **3 windows**: Focused in center, others on sides
-- **4+ windows**: Focused gets left 2/3, others stacked on right
-
-Only affects windows on the currently focused display.
 
 ## Project Structure
 
