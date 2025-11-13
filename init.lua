@@ -10,12 +10,16 @@ local config = {
   maxLogLines = 100,
 }
 
+-- Enable IPC for CLI access
+hs.ipc.cliInstall()
+
 -- Load modules
 local logger = require("src.logger")
 local displays = require("src.displays")
 require("src.layouts") -- Loaded for use in other modules
 require("src.window-manager") -- Loaded for use in keybindings
 local keybindings = require("src.keybindings")
+local notifications = require("src.notifications")
 
 -- Initialize logger
 logger.init({
@@ -54,6 +58,9 @@ end
 
 -- Setup keybindings
 keybindings.setup()
+
+-- Expose notifications globally for IPC access
+_G.notifications = notifications
 
 -- Show success notification
 hs.alert.show("Hammerspoon Window Manager Loaded")
