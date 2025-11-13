@@ -31,12 +31,7 @@ logger.info("========================================")
 -- Log system info
 local osVersion = hs.host.operatingSystemVersion()
 logger.info(
-  string.format(
-    "macOS Version: %d.%d.%d",
-    osVersion.major,
-    osVersion.minor,
-    osVersion.patch
-  )
+  string.format("macOS Version: %d.%d.%d", osVersion.major, osVersion.minor, osVersion.patch)
 )
 logger.info("Hammerspoon Version: " .. hs.processInfo.version)
 
