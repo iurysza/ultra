@@ -18,6 +18,7 @@ local logger = require("src.logger")
 local displays = require("src.displays")
 require("src.layouts") -- Loaded for use in other modules
 require("src.window-manager") -- Loaded for use in keybindings
+require("src.workspaces") -- Loaded for workspace management
 local keybindings = require("src.keybindings")
 local appSpecificKeys = require("src.app-specific-keys")
 local notifications = require("src.notifications")

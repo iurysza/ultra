@@ -62,6 +62,28 @@ Current implementations:
 Key functions:
 - `setup()`: Initialize app-specific keybindings + watcher
 
+### Workspaces (App Groups)
+**Location**: `src/workspaces.lua`
+
+Predefined app layouts w/ cycling:
+- **Workspace Definitions**: Named groups of apps w/ layouts (comms, web, webdev, androiddev)
+- **Workspace Groups**: Cycling sets for shortcuts (n_group, m_group)
+- **Smart Launch**: Launch/focus all apps + minimize non-workspace windows
+- **Multi-Window Support**: Handle multiple windows of same app (e.g., 2 Chrome windows)
+- **Auto-Positioning**: Apply layouts after 0.5s delay
+- **Cycle State**: Track current workspace per group
+
+Predefined workspaces:
+- **comms**: Slack + Meet + Chrome (3-way split)
+- **web**: 2 Chrome windows (50/50)
+- **webdev**: Cursor + Ghostty + Chrome (3-way split)
+- **androiddev**: Android Studio + Ghostty (50/50)
+
+Key functions:
+- `activateWorkspace(workspaceId)`: Launch + position workspace apps
+- `cycleWorkspace(groupId)`: Cycle through workspace group
+- `getWorkspaces()`: List all workspaces
+
 ### Display Management
 **Location**: `src/displays.lua`
 
@@ -137,7 +159,8 @@ Hyper key (Shift+Cmd+Ctrl+Opt) shortcuts:
 - **Window Positioning**: h/j/k/l/y/u/i/o/p (vim-style)
 - **Monitor Switching**: Left/Right arrows
 - **Utilities**: \ (organize), = (minimize), ] (App Exposé), r (reload)
-- **App Launchers**: F1-F12, ;, m, 5 (smart toggle)
+- **App Launchers**: F1-F12, ;, g, 5 (smart toggle)
+- **Workspace Cycling**: n (comms ↔ web), m (webdev ↔ androiddev)
 
 **App-Specific Keybindings** (`app-specific-keys.lua`):
 Context-aware shortcuts that only work in specific apps:
@@ -147,11 +170,12 @@ Context-aware shortcuts that only work in specific apps:
 Requires Karabiner-Elements to map Caps Lock → Hyper.
 
 ### Core Logic Layer
-**Location**: `src/window-manager.lua`, `src/app-launcher.lua`, `src/displays.lua`, `src/layouts.lua`
+**Location**: `src/window-manager.lua`, `src/app-launcher.lua`, `src/workspaces.lua`, `src/displays.lua`, `src/layouts.lua`
 
 Business logic:
 - **Window Manager**: Core positioning, movement, organization algorithms
 - **App Launcher**: Smart toggle logic (launch → focus → hide)
+- **Workspaces**: Multi-app layout orchestration w/ cycling
 - **Displays**: Hardware detection, screen classification
 - **Layouts**: Geometry calculations, layout definitions
 
@@ -286,6 +310,29 @@ window-manager.lua: win:moveToScreen(targetScreen)
 Maximize on new screen
 ```
 
+### Workspace Cycling
+```
+User presses Hyper+N (comms ↔ web)
+  ↓
+keybindings.lua: hotkey callback
+  ↓
+workspaces.lua: cycleWorkspace("n_group")
+  ↓
+Get cycle state → increment → wrap around
+  ↓
+workspaces.lua: activateWorkspace(workspaceId)
+  ↓
+minimizeNonWorkspaceWindows(apps) → minimize all other windows
+  ↓
+Launch/focus all workspace apps (deduplicated)
+  ↓
+Wait 0.5s for apps to launch
+  ↓
+positionApps() → apply layouts to windows
+  ↓
+Focus first app window
+```
+
 ### Notification with Tmux Focus
 ```
 CLI: notify-claude task-complete
@@ -332,22 +379,25 @@ Alert user (auto-dismiss after 5s)
 │  (Bootstrap, IPC, Watchers, Module Loading, Global Exposure) │
 └────────────────────┬────────────────────────────────────────┘
                      │
-        ┌────────────┴────────────┬──────────────────┐
-        │                         │                   │
-        ▼                         ▼                   ▼
-┌──────────────┐          ┌──────────────┐    ┌──────────────┐
-│ keybindings  │          │app-specific  │    │ notifications│
-│  (Global)    │          │  -keys       │    │ (IPC/CLI)    │
-└──────┬───────┘          │(Context-     │    └──────────────┘
-       │                  │ aware)       │
-       │                  └──────────────┘
-       ▼
-┌──────────────────────────────────────────────┐
-│          window-manager.lua                   │
-│  (Core Logic: Position, Move, Organize)       │
-└────────┬─────────────────────┬────────────────┘
-         │                     │
-         ▼                     ▼
+        ┌────────────┴────────────┬──────────────────┬─────────┐
+        │                         │                   │         │
+        ▼                         ▼                   ▼         ▼
+┌──────────────┐          ┌──────────────┐    ┌──────────────┐ │
+│ keybindings  │          │app-specific  │    │ notifications│ │
+│  (Global)    │          │  -keys       │    │ (IPC/CLI)    │ │
+└──────┬───────┘          │(Context-     │    └──────────────┘ │
+       │                  │ aware)       │                      │
+       │                  └──────────────┘                      │
+       │                                                         │
+       ├──────────────┬──────────────────────────────────────────┘
+       ▼              ▼
+┌──────────────┐  ┌──────────────────────────────────┐
+│window-manager│  │       workspaces.lua              │
+│(Position,    │  │ (Multi-app orchestration, cycling)│
+│Move, Organize)  └────────────┬──────────────────────┘
+└──────┬───────┘               │
+       │                       │
+       ▼                       ▼
 ┌──────────────────┐      ┌─────────┐           ┌─────────┐
 │  app-launcher    │      │displays │           │ layouts │
 │(Launch/Focus/Hide)      │(Hardware)           │(Geometry)│
@@ -371,7 +421,8 @@ init.lua
 ├── displays.lua (requires: logger)
 ├── layouts.lua (requires: displays, logger)
 ├── window-manager.lua (requires: displays, layouts, logger)
-├── keybindings.lua (requires: window-manager, app-launcher, logger)
+├── workspaces.lua (requires: app-launcher, displays, layouts, logger)
+├── keybindings.lua (requires: window-manager, app-launcher, workspaces, logger)
 ├── app-specific-keys.lua (requires: logger)
 └── notifications.lua (requires: logger)
 
@@ -420,11 +471,19 @@ hs.hotkey.bind(hyper, "h", function() wm.positionWindow("left") end)
 hs.hotkey.bind(hyper, "f10", function() appLauncher.toggleApp("md.obsidian") end)
 ```
 
-### 7. Separation of Concerns
+### 7. Workspace Orchestration
+Multi-app coordination w/ group cycling:
+```lua
+workspaceGroups["n_group"] = { "comms", "web" }  -- Hyper+N cycles
+cycleState["n_group"] = 1  -- Track current workspace
+```
+
+### 8. Separation of Concerns
 - **Displays**: "What hardware do we have?"
 - **Layouts**: "What geometries are available?"
 - **Window Manager**: "Where should windows go?"
 - **App Launcher**: "How do we launch/focus/hide apps?"
+- **Workspaces**: "How do we orchestrate multiple apps?"
 - **Keybindings**: "What keys trigger what?"
 - **App-Specific Keys**: "What keys work in which apps?"
 
@@ -461,11 +520,12 @@ Auto-detects running terminal (Ghostty, iTerm2, kitty, Alacritty, Terminal)
 │   ├── app-launcher.lua        # Smart app toggle (launch/focus/hide)
 │   ├── app-specific-keys.lua   # Context-aware keybindings (Obsidian, etc.)
 │   ├── displays.lua            # Display detection (3440x1440 check)
-│   ├── keybindings.lua         # Hyper key shortcuts (window + app launchers)
+│   ├── keybindings.lua         # Hyper key shortcuts (window + app + workspace)
 │   ├── layouts.lua             # Layout definitions (860+1720+860)
 │   ├── logger.lua              # File logging w/ rotation
 │   ├── notifications.lua       # macOS notifications + tmux focus (5s auto-dismiss)
-│   └── window-manager.lua      # Core positioning & organization
+│   ├── window-manager.lua      # Core positioning & organization
+│   └── workspaces.lua          # Multi-app orchestration w/ cycling
 ├── scripts/
 │   ├── install.sh              # Setup script
 │   ├── lint.sh                 # luacheck
@@ -516,8 +576,12 @@ Auto-detects running terminal (Ghostty, iTerm2, kitty, Alacritty, Terminal)
 - **F11**: Chrome
 - **F12**: WhatsApp
 - **;**: Msty
-- **m**: Google Meet
+- **g**: Google Meet (moved from 'm')
 - **5**: scrcpy
+
+**Workspace Cycling:**
+- **n**: Cycle Communication ↔ Web
+- **m**: Cycle Coding ↔ Android (moved from Google Meet)
 
 **Obsidian-Specific (only when Obsidian is frontmost):**
 - **Ctrl+h/j/k/l**: Arrow navigation (vim-style)
@@ -535,22 +599,31 @@ Auto-detects running terminal (Ghostty, iTerm2, kitty, Alacritty, Terminal)
 
 ## Recent Changes
 
-### App Launcher System (Current Session)
+### Workspaces System (Current)
+- **New Module**: `src/workspaces.lua` for multi-app orchestration
+- **4 Workspaces**: comms, web, webdev, androiddev
+- **Cycling Groups**: Hyper+N (comms ↔ web), Hyper+M (webdev ↔ androiddev)
+- **Smart Launch**: Auto-minimize non-workspace windows
+- **Multi-Window Support**: Handle 2+ windows of same app (e.g., Chrome)
+- **Auto-Positioning**: 0.5s delay for app launch
+- **Keybinding Changes**: Google Meet moved from 'm' to 'g' (m = workspace cycling)
+
+### App Launcher System (Previous Session)
 - **New Module**: `app-launcher.lua` with 3-state toggle logic
 - **Smart Behavior**: Launch → Focus → Hide based on app state
-- **12 App Shortcuts**: F1-F12, semicolon, m, 5 keys
+- **12 App Shortcuts**: F1-F12, semicolon, g, 5 keys
 - **Integration**: Migrated from Karabiner to Hammerspoon
 
-### App-Specific Keybindings (Current Session)
+### App-Specific Keybindings (Previous Session)
 - **New Module**: `app-specific-keys.lua` with dynamic hotkey management
 - **Obsidian Integration**: Vim navigation + custom shortcuts
 - **Application Watcher**: Auto-enable/disable based on frontmost app
 - **Extensible Design**: Easy to add bindings for other apps
 
-### Notification Auto-Dismiss (Current Session)
+### Notification Auto-Dismiss (Previous Session)
 - **5-Second Timeout**: All notifications now auto-dismiss
 - **Consistent UX**: Applies to all notification types (task complete, errors, etc.)
 
 ---
 
-**Generated at commit**: `6eb2a7853d154699f5ff66748365f0e5e66ae392`
+**Generated at commit**: `a0065918c3870c67423d86606bd4c908da8fd7be`

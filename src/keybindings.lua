@@ -5,6 +5,7 @@
 local wm = require("src.window-manager")
 local logger = require("src.logger")
 local appLauncher = require("src.app-launcher")
+local workspaces = require("src.workspaces")
 local M = {}
 
 -- Hyper key: Shift+Cmd+Ctrl+Opt (mapped via Karabiner from Caps Lock)
@@ -156,9 +157,9 @@ function M.setup()
     appLauncher.toggleApp("MstyStudio")
   end)
 
-  -- Google Meet (Chrome app)
-  hs.hotkey.bind(hyper, "m", function()
-    logger.debug("Keybinding: Hyper+M (Google Meet)")
+  -- Google Meet (Chrome app) - moved to 'g' for workspaces
+  hs.hotkey.bind(hyper, "g", function()
+    logger.debug("Keybinding: Hyper+G (Google Meet)")
     appLauncher.toggleApp("com.google.Chrome.app.kjgfgldnnfoeklkmfkjfagphfepbbdan")
   end)
 
@@ -168,6 +169,21 @@ function M.setup()
     appLauncher.executeAppleScript(
       'tell application "System Events" to tell process "scrcpy" to set frontmost to true'
     )
+  end)
+
+  -- Workspace shortcuts (cycling)
+  logger.info("Setting up workspace keybindings")
+
+  -- Hyper+N: Cycle between Communication and Web workspaces
+  hs.hotkey.bind(hyper, "n", function()
+    logger.debug("Keybinding: Hyper+N (Cycle: Communication <-> Web)")
+    workspaces.cycleWorkspace("n_group")
+  end)
+
+  -- Hyper+M: Cycle between Coding and Android workspaces
+  hs.hotkey.bind(hyper, "m", function()
+    logger.debug("Keybinding: Hyper+M (Cycle: Coding <-> Android)")
+    workspaces.cycleWorkspace("m_group")
   end)
 
   logger.info("Keybindings setup complete")
