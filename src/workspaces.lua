@@ -2,28 +2,29 @@ local logger = require("src.logger")
 local appLauncher = require("src.app-launcher")
 local displays = require("src.displays")
 local layouts = require("src.layouts")
+local environment = require("src.environment")
 
 local M = {}
 
 -- Cycle state for workspace groups
 local cycleState = {}
 
--- Workspace definitions
+-- Workspace definitions (environment-aware)
 local workspaces = {
 	comms = {
 		name = "Communication",
 		apps = {
-			{ bundleID = "com.tinyspeck.slackmacgap" }, -- Slack
+			{ bundleID = environment.resolveApp("communication") }, -- Slack (work) / WhatsApp (personal)
 			{ bundleID = "com.google.Chrome.app.kjgfgldnnfoeklkmfkjfagphfepbbdan" }, -- Google Meet
-			{ bundleID = "com.google.Chrome" }, -- Chrome
+			{ bundleID = environment.resolveApp("browser") }, -- Chrome (work) / Vivaldi (personal)
 		},
 		layouts = { "left", "center", "right" }, -- Equal 3-way split
 	},
 	web = {
 		name = "Web",
 		apps = {
-			{ bundleID = "com.google.Chrome" }, -- Chrome window 1
-			{ bundleID = "com.google.Chrome" }, -- Chrome window 2
+			{ bundleID = environment.resolveApp("browser") }, -- Chrome (work) / Vivaldi (personal)
+			{ bundleID = environment.resolveApp("browser") }, -- Same browser, window 2
 		},
 		layouts = { "leftHalf", "rightHalf" }, -- 50/50 split
 		multiWindow = true, -- Special flag for handling multiple windows of same app
@@ -33,7 +34,7 @@ local workspaces = {
 		apps = {
 			{ bundleID = "com.todesktop.230313mzl4w4u92" }, -- Cursor
 			{ bundleID = "com.mitchellh.ghostty" }, -- Ghostty
-			{ bundleID = "com.google.Chrome" }, -- Chrome
+			{ bundleID = environment.resolveApp("browser") }, -- Chrome (work) / Vivaldi (personal)
 		},
 		layouts = { "left", "center", "right" }, -- Equal 3-way split
 	},

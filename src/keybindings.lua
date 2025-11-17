@@ -6,6 +6,7 @@ local wm = require("src.window-manager")
 local logger = require("src.logger")
 local appLauncher = require("src.app-launcher")
 local workspaces = require("src.workspaces")
+local environment = require("src.environment")
 local M = {}
 
 -- Hyper key: Shift+Cmd+Ctrl+Opt (mapped via Karabiner from Caps Lock)
@@ -16,49 +17,52 @@ function M.setup()
   logger.info("Setting up keybindings")
 
   -- Window positioning shortcuts
-  hs.hotkey.bind(hyper, "h", function()
-    logger.debug("Keybinding: Hyper+h (left)")
+  -- LEFT-ALIGNED POSITIONS
+  hs.hotkey.bind(hyper, "y", function()
+    logger.debug("Keybinding: Hyper+y (left - small left side)")
     wm.positionWindow("left")
   end)
 
-  hs.hotkey.bind(hyper, "j", function()
-    logger.debug("Keybinding: Hyper+j (center)")
-    wm.positionWindow("center")
-  end)
-
-  hs.hotkey.bind(hyper, "k", function()
-    logger.debug("Keybinding: Hyper+k (full)")
-    wm.positionWindow("full")
-  end)
-
-  hs.hotkey.bind(hyper, "l", function()
-    logger.debug("Keybinding: Hyper+l (right)")
-    wm.positionWindow("right")
-  end)
-
-  hs.hotkey.bind(hyper, "u", function()
-    logger.debug("Keybinding: Hyper+u (leftTwoThirds)")
-    wm.positionWindow("leftTwoThirds")
-  end)
-
-  hs.hotkey.bind(hyper, "i", function()
-    logger.debug("Keybinding: Hyper+i (centerFocus)")
-    wm.positionWindow("centerFocus")
-  end)
-
-  hs.hotkey.bind(hyper, "o", function()
-    logger.debug("Keybinding: Hyper+o (rightTwoThirds)")
-    wm.positionWindow("rightTwoThirds")
-  end)
-
-  hs.hotkey.bind(hyper, "y", function()
-    logger.debug("Keybinding: Hyper+y (leftHalf)")
+  hs.hotkey.bind(hyper, "h", function()
+    logger.debug("Keybinding: Hyper+h (leftHalf)")
     wm.positionWindow("leftHalf")
   end)
 
+  hs.hotkey.bind(hyper, "j", function()
+    logger.debug("Keybinding: Hyper+j (leftTwoThirds)")
+    wm.positionWindow("leftTwoThirds")
+  end)
+
+  -- CENTER-ALIGNED POSITIONS
+  hs.hotkey.bind(hyper, "u", function()
+    logger.debug("Keybinding: Hyper+u (centerFocus - small center)")
+    wm.positionWindow("centerFocus")
+  end)
+
+  hs.hotkey.bind(hyper, "i", function()
+    logger.debug("Keybinding: Hyper+i (center - large center split)")
+    wm.positionWindow("center")
+  end)
+
+  hs.hotkey.bind(hyper, "o", function()
+    logger.debug("Keybinding: Hyper+o (full - whole screen)")
+    wm.positionWindow("full")
+  end)
+
+  -- RIGHT-ALIGNED POSITIONS
   hs.hotkey.bind(hyper, "p", function()
-    logger.debug("Keybinding: Hyper+p (rightHalf)")
+    logger.debug("Keybinding: Hyper+p (right - small right side)")
+    wm.positionWindow("right")
+  end)
+
+  hs.hotkey.bind(hyper, "l", function()
+    logger.debug("Keybinding: Hyper+l (rightHalf)")
     wm.positionWindow("rightHalf")
+  end)
+
+  hs.hotkey.bind(hyper, "k", function()
+    logger.debug("Keybinding: Hyper+k (rightTwoThirds)")
+    wm.positionWindow("rightTwoThirds")
   end)
 
   -- Monitor switching
@@ -139,10 +143,11 @@ function M.setup()
     appLauncher.toggleApp("md.obsidian")
   end)
 
-  -- Chrome
+  -- Browser (environment-aware: Chrome on work, Vivaldi on personal)
   hs.hotkey.bind(hyper, "f11", function()
-    logger.debug("Keybinding: Hyper+F11 (Chrome)")
-    appLauncher.toggleApp("com.google.Chrome")
+    local browser = environment.resolveApp("browser")
+    logger.debug("Keybinding: Hyper+F11 (Browser: " .. browser .. ")")
+    appLauncher.toggleApp(browser)
   end)
 
   -- WhatsApp
@@ -151,11 +156,13 @@ function M.setup()
     appLauncher.toggleApp("net.whatsapp.WhatsApp")
   end)
 
-  -- Msty
-  hs.hotkey.bind(hyper, ";", function()
-    logger.debug("Keybinding: Hyper+; (Msty)")
-    appLauncher.toggleApp("MstyStudio")
-  end)
+  -- Msty (work environment only)
+  if environment.get() == environment.WORK then
+    hs.hotkey.bind(hyper, ";", function()
+      logger.debug("Keybinding: Hyper+; (Msty)")
+      appLauncher.toggleApp("MstyStudio")
+    end)
+  end
 
   -- Google Meet (Chrome app) - moved to 'g' for workspaces
   hs.hotkey.bind(hyper, "g", function()

@@ -15,6 +15,7 @@ hs.ipc.cliInstall()
 
 -- Load modules
 local logger = require("src.logger")
+local environment = require("src.environment")
 local displays = require("src.displays")
 require("src.layouts") -- Loaded for use in other modules
 require("src.window-manager") -- Loaded for use in keybindings
@@ -40,6 +41,7 @@ logger.info(
   string.format("macOS Version: %d.%d.%d", osVersion.major, osVersion.minor, osVersion.patch)
 )
 logger.info("Hammerspoon Version: " .. hs.processInfo.version)
+logger.info("Environment: " .. environment.get())
 
 -- Detect displays
 local allDisplays = displays.getAllDisplays()
