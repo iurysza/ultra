@@ -185,6 +185,126 @@ local function apply3WindowLayout(config, focusedWin, otherWins, screen)
   end
 end
 
+--- Apply 4+ window layout configuration
+--- @param config number Config index (1-4)
+--- @param focusedWin hs.window Focused window
+--- @param otherWins table Other windows (first is second window, rest are stacked)
+--- @param screen hs.screen Screen object
+local function apply4PlusWindowLayout(config, focusedWin, otherWins, screen)
+  local frame = screen:frame()
+  local secondWin = otherWins[1]
+  local restWins = {}
+
+  -- Collect remaining windows (3rd, 4th, 5th...)
+  for i = 2, #otherWins do
+    table.insert(restWins, otherWins[i])
+  end
+
+  if config == 1 then
+    -- Focused left 2/3 | second right top | rest right bottom (stacked)
+    local leftLayout = layouts.getLayout("leftTwoThirds", screen)
+    if leftLayout then
+      focusedWin:setFrame(leftLayout)
+
+      local rightWidth = 860
+      local rightTopHeight = frame.h / 2
+      local stackHeight = frame.h / 2 / #restWins
+
+      -- Second window on right top
+      secondWin:setFrame({
+        x = frame.x + frame.w - rightWidth,
+        y = frame.y,
+        w = rightWidth,
+        h = rightTopHeight,
+      })
+
+      -- Rest stacked on right bottom
+      for i, win in ipairs(restWins) do
+        local y = frame.y + rightTopHeight + ((i - 1) * stackHeight)
+        win:setFrame({
+          x = frame.x + frame.w - rightWidth,
+          y = y,
+          w = rightWidth,
+          h = stackHeight,
+        })
+      end
+    end
+  elseif config == 2 then
+    -- Focused center | second left | rest right (stacked)
+    local centerLayout = layouts.getLayout("center", screen)
+    local leftLayout = layouts.getLayout("left", screen)
+    if centerLayout and leftLayout then
+      focusedWin:setFrame(centerLayout)
+      secondWin:setFrame(leftLayout)
+
+      -- Rest stacked on right
+      local rightWidth = 860
+      local stackHeight = frame.h / #restWins
+
+      for i, win in ipairs(restWins) do
+        local y = frame.y + ((i - 1) * stackHeight)
+        win:setFrame({
+          x = frame.x + frame.w - rightWidth,
+          y = y,
+          w = rightWidth,
+          h = stackHeight,
+        })
+      end
+    end
+  elseif config == 3 then
+    -- Focused center | second right | rest left (stacked)
+    local centerLayout = layouts.getLayout("center", screen)
+    local rightLayout = layouts.getLayout("right", screen)
+    if centerLayout and rightLayout then
+      focusedWin:setFrame(centerLayout)
+      secondWin:setFrame(rightLayout)
+
+      -- Rest stacked on left
+      local leftWidth = 860
+      local stackHeight = frame.h / #restWins
+
+      for i, win in ipairs(restWins) do
+        local y = frame.y + ((i - 1) * stackHeight)
+        win:setFrame({
+          x = frame.x,
+          y = y,
+          w = leftWidth,
+          h = stackHeight,
+        })
+      end
+    end
+  elseif config == 4 then
+    -- Focused right 2/3 | second left top | rest left bottom (stacked)
+    local rightLayout = layouts.getLayout("rightTwoThirds", screen)
+    if rightLayout then
+      focusedWin:setFrame(rightLayout)
+
+      local leftWidth = 860
+      local leftTopHeight = frame.h / 2
+      local stackHeight = frame.h / 2 / #restWins
+
+      -- Second window on left top
+      secondWin:setFrame({
+        x = frame.x,
+        y = frame.y,
+        w = leftWidth,
+        h = leftTopHeight,
+      })
+
+      -- Rest stacked on left bottom
+      for i, win in ipairs(restWins) do
+        local y = frame.y + leftTopHeight + ((i - 1) * stackHeight)
+        win:setFrame({
+          x = frame.x,
+          y = y,
+          w = leftWidth,
+          h = stackHeight,
+        })
+      end
+    end
+  end
+end
+
 --- Smart organize all windows on focused display (with cycling)
 function M.organizeWindows()
   local focusedWin = hs.window.focusedWindow()
@@ -285,29 +405,30 @@ function M.organizeWindows()
     )
     hs.alert.show(configNames[cycleState[stateKey]])
   else
-    -- 4+ windows: focused left 2/3, others stacked right (no cycling)
-    local leftLayout = layouts.getLayout("leftTwoThirds", screen)
-    if leftLayout then
-      focusedWin:setFrame(leftLayout)
-
-      -- Stack others on right
-      local frame = screen:frame()
-      local rightWidth = 860
-      local stackHeight = frame.h / #otherWins
-
-      for i, win in ipairs(otherWins) do
-        local y = frame.y + ((i - 1) * stackHeight)
-        win:setFrame({
-          x = frame.x + frame.w - rightWidth,
-          y = y,
-          w = rightWidth,
-          h = stackHeight,
-        })
-      end
-
-      logger.info(string.format("%d windows: Focused left 2/3, others stacked right", count))
-      hs.alert.show("Focused + stacked")
+    -- 4+ windows: cycle through 4 configs
+    cycleState[stateKey] = (cycleState[stateKey] or 0) + 1
+    if cycleState[stateKey] > 4 then
+      cycleState[stateKey] = 1
     end
+
+    apply4PlusWindowLayout(cycleState[stateKey], focusedWin, otherWins, screen)
+
+    local configNames = {
+      "Focused 2/3 left + stack right",
+      "Focused center + stack right",
+      "Focused center + stack left",
+      "Focused 2/3 right + stack left",
+    }
+    logger.info(
+      string.format(
+        "%d windows: Applied config %d/%d: %s",
+        count,
+        cycleState[stateKey],
+        4,
+        configNames[cycleState[stateKey]]
+      )
+    )
+    hs.alert.show(configNames[cycleState[stateKey]])
   end
 end
 
