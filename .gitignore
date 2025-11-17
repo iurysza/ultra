@@ -14,3 +14,4 @@ debug.log
 *.swp
 *.swo
 *~
+.docs/** 
