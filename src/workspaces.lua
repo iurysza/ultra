@@ -191,29 +191,64 @@ local function positionApps(apps, layoutNames, screen, multiWindow)
 					end
 				end
 			end
+
+			-- Minimize extra windows beyond layout count
+			if #windows > #layoutNames then
+				logger.info("Minimizing " .. (#windows - #layoutNames) .. " extra windows")
+				for i = #layoutNames + 1, #windows do
+					windows[i]:minimize()
+				end
+			end
 		end
 	else
 		-- Normal handling: one app per config
+		-- Track which apps/windows we've positioned
+		local positionedApps = {}
+
 		for i, appConfig in ipairs(apps) do
-			local window = getAppWindow(appConfig)
-			if window then
+			local appId = appConfig.bundleID or appConfig.appName
+			local app = nil
+
+			if appConfig.bundleID then
+				app = hs.application.get(appConfig.bundleID)
+			elseif appConfig.appName then
+				app = hs.application.get(appConfig.appName)
+			end
+
+			if app then
+				local allWindows = app:visibleWindows()
 				local layoutName = layoutNames[i]
-				if layoutName then
+
+				if layoutName and #allWindows > 0 then
 					local layout = layouts.getLayout(layoutName, screen)
 					if layout then
+						-- Position first window for this app
 						logger.info(
 							"Positioning app "
 								.. (appConfig.bundleID or appConfig.appName)
-								.. " to layout: "
+								.. " (window 1/"
+								.. #allWindows
+								.. ") to layout: "
 								.. layoutName
 						)
-						window:setFrame(layout)
+						allWindows[1]:setFrame(layout)
+
+						-- Track how many times we've seen this app
+						positionedApps[appId] = (positionedApps[appId] or 0) + 1
+
+						-- Minimize additional windows from this app
+						if #allWindows > 1 then
+							logger.info("Minimizing " .. (#allWindows - 1) .. " extra windows from " .. app:name())
+							for j = 2, #allWindows do
+								allWindows[j]:minimize()
+							end
+						end
 					else
 						logger.warn("No layout found for: " .. layoutName)
 					end
 				end
 			else
-				logger.warn("No window found for app: " .. (appConfig.bundleID or appConfig.appName))
+				logger.warn("No app found for: " .. (appConfig.bundleID or appConfig.appName))
 			end
 		end
 	end
