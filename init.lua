@@ -1,5 +1,5 @@
 --- Hammerspoon Window Manager
---- Multi-display window manager with ultrawide support
+--- Multi-display window manager with adaptive ultrawide support (aspect ratio detection)
 --- @author iury.souza
 --- @module init
 

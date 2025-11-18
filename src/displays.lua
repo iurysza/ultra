@@ -5,9 +5,12 @@
 local logger = require("src.logger")
 local M = {}
 
--- Ultrawide resolution constants
-local ULTRAWIDE_WIDTH = 3440
-local ULTRAWIDE_HEIGHT = 1440
+-- Ultrawide detection threshold
+-- 21:9 aspect ratio ≈ 2.33
+-- We use 2.3 to allow some tolerance and catch various ultrawide formats
+-- Standard displays: 16:9 (1.78), 16:10 (1.6)
+-- Ultrawide displays: 21:9 (2.33), 32:9 (3.56)
+local ULTRAWIDE_ASPECT_THRESHOLD = 2.3
 
 --- Get all displays with metadata
 --- @return table Array of screens with metadata
@@ -46,7 +49,7 @@ function M.getAllDisplays()
   return displays
 end
 
---- Check if screen is ultrawide (3440x1440)
+--- Check if screen is ultrawide (aspect ratio >= 2.3)
 --- @param screen hs.screen Screen object
 --- @return boolean True if ultrawide
 function M.isUltrawide(screen)
@@ -55,7 +58,19 @@ function M.isUltrawide(screen)
   end
 
   local mode = screen:currentMode()
-  return mode.w == ULTRAWIDE_WIDTH and mode.h == ULTRAWIDE_HEIGHT
+  local aspectRatio = mode.w / mode.h
+
+  logger.debug(
+    string.format(
+      "Display aspect ratio check: %s (%dx%d) = %.2f",
+      screen:name(),
+      mode.w,
+      mode.h,
+      aspectRatio
+    )
+  )
+
+  return aspectRatio >= ULTRAWIDE_ASPECT_THRESHOLD
 end
 
 --- Get display containing the given window

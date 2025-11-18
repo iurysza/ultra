@@ -6,8 +6,9 @@ local displays = require("src.displays")
 local logger = require("src.logger")
 local M = {}
 
--- Ultrawide layout constants (3440x1440)
+-- Ultrawide layout constants (optimized for 3440x1440)
 -- System: 860px + 1720px + 860px = 3440px
+-- Note: Applied to any display with aspect ratio >= 2.3 (21:9 or wider)
 local ULTRAWIDE_LAYOUTS = {
   left = { x = 0, y = 0, w = 860, h = 1440 },
   center = { x = 860, y = 0, w = 1720, h = 1440 },
@@ -66,28 +67,29 @@ end
 --- @param frame table Display frame {x, y, w, h}
 --- @return table|nil Layout {x, y, w, h} or nil
 function M.getProportionalLayout(position, frame)
-  -- Mapping for MacBook: simplified to left/right halves
-  -- h, y, u -> left half
-  -- l, p, o -> right half
-  -- j -> center (same as full for MacBook)
-  -- k -> full
+  -- For standard displays, we simplify to halves and thirds
+  -- This ensures clean layouts without gaps
 
   local halfW = frame.w / 2
+  local thirdW = frame.w / 3
+  local twoThirdsW = (frame.w * 2) / 3
 
   local layouts = {
-    -- Left half group
-    left = { x = frame.x, y = frame.y, w = halfW, h = frame.h },
-    leftHalf = { x = frame.x, y = frame.y, w = halfW, h = frame.h },
-    leftTwoThirds = { x = frame.x, y = frame.y, w = halfW, h = frame.h },
+    -- Left positions
+    left = { x = frame.x, y = frame.y, w = thirdW, h = frame.h }, -- Left third
+    leftHalf = { x = frame.x, y = frame.y, w = halfW, h = frame.h }, -- Left half
+    leftTwoThirds = { x = frame.x, y = frame.y, w = twoThirdsW, h = frame.h }, -- Left 2/3
 
-    -- Right half group
-    right = { x = frame.x + halfW, y = frame.y, w = halfW, h = frame.h },
-    rightHalf = { x = frame.x + halfW, y = frame.y, w = halfW, h = frame.h },
-    rightTwoThirds = { x = frame.x + halfW, y = frame.y, w = halfW, h = frame.h },
+    -- Center positions
+    center = { x = frame.x + thirdW, y = frame.y, w = thirdW, h = frame.h }, -- Center third
+    centerFocus = { x = frame.x + thirdW, y = frame.y, w = thirdW, h = frame.h }, -- Center third
 
-    -- Center and full
-    center = { x = frame.x, y = frame.y, w = frame.w, h = frame.h },
-    centerFocus = { x = frame.x, y = frame.y, w = frame.w, h = frame.h },
+    -- Right positions
+    right = { x = frame.x + twoThirdsW, y = frame.y, w = thirdW, h = frame.h }, -- Right third
+    rightHalf = { x = frame.x + halfW, y = frame.y, w = halfW, h = frame.h }, -- Right half
+    rightTwoThirds = { x = frame.x + thirdW, y = frame.y, w = twoThirdsW, h = frame.h }, -- Right 2/3
+
+    -- Full screen
     full = { x = frame.x, y = frame.y, w = frame.w, h = frame.h },
   }
 
