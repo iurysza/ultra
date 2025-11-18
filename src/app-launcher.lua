@@ -51,16 +51,45 @@ function M.toggleApp(bundleID)
   end
 
   if isAppFrontmost(bundleID) then
-    -- App is frontmost → minimize/hide it
     local app = hs.application.get(bundleID)
-    logger.info(string.format("Hiding app: %s", bundleID))
-    app:hide()
+    local visibleWindows = app and app:visibleWindows() or {}
+
+    -- If app is frontmost but has no visible windows, un-minimize instead
+    if #visibleWindows == 0 then
+      logger.info("App is frontmost but no visible windows, un-minimizing")
+      for _, window in ipairs(app:allWindows()) do
+        if window:isMinimized() then
+          window:unminimize()
+        end
+      end
+      app:activate()
+      return
+    end
+
+    -- App is frontmost with visible windows → minimize focused window
+    local focusedWindow = hs.window.focusedWindow()
+    if focusedWindow then
+      logger.info(string.format("Minimizing window: %s", focusedWindow:title()))
+      focusedWindow:minimize()
+    end
     return
   end
 
-  -- App is running but not frontmost → focus it
+  -- App is running but not frontmost → un-minimize and focus it
   logger.info(string.format("Focusing app: %s", bundleID))
-  hs.application.launchOrFocusByBundleID(bundleID)
+  local app = hs.application.get(bundleID)
+  if app then
+    -- Un-minimize all windows before activating
+    for _, window in ipairs(app:allWindows()) do
+      if window:isMinimized() then
+        logger.debug("Un-minimizing window for: " .. app:name())
+        window:unminimize()
+      end
+    end
+    app:activate()
+  else
+    hs.application.launchOrFocusByBundleID(bundleID)
+  end
 end
 
 --- Launch or focus app by name (fallback for apps without bundle ID)
@@ -78,15 +107,39 @@ function M.toggleAppByName(appName)
   end
 
   if app:isFrontmost() then
-    -- App is frontmost → minimize/hide it
-    logger.info(string.format("Hiding app: %s", appName))
-    app:hide()
+    local visibleWindows = app:visibleWindows()
+
+    -- If app is frontmost but has no visible windows, un-minimize instead
+    if #visibleWindows == 0 then
+      logger.info("App is frontmost but no visible windows, un-minimizing")
+      for _, window in ipairs(app:allWindows()) do
+        if window:isMinimized() then
+          window:unminimize()
+        end
+      end
+      app:activate()
+      return
+    end
+
+    -- App is frontmost with visible windows → minimize focused window
+    local focusedWindow = hs.window.focusedWindow()
+    if focusedWindow then
+      logger.info(string.format("Minimizing window: %s", focusedWindow:title()))
+      focusedWindow:minimize()
+    end
     return
   end
 
-  -- App is running but not frontmost → focus it
+  -- App is running but not frontmost → un-minimize and focus it
   logger.info(string.format("Focusing app: %s", appName))
-  hs.application.launchOrFocus(appName)
+  -- Un-minimize all windows before activating
+  for _, window in ipairs(app:allWindows()) do
+    if window:isMinimized() then
+      logger.debug("Un-minimizing window for: " .. app:name())
+      window:unminimize()
+    end
+  end
+  app:activate()
 end
 
 --- Execute AppleScript command
