@@ -156,13 +156,11 @@ function M.setup()
     appLauncher.toggleApp("net.whatsapp.WhatsApp")
   end)
 
-  -- Msty (work environment only)
-  if environment.get() == environment.WORK then
-    hs.hotkey.bind(hyper, ";", function()
-      logger.debug("Keybinding: Hyper+; (Msty)")
-      appLauncher.toggleApp("MstyStudio")
-    end)
-  end
+  -- Msty
+  hs.hotkey.bind(hyper, ";", function()
+    logger.debug("Keybinding: Hyper+; (Msty)")
+    appLauncher.toggleApp("MstyStudio")
+  end)
 
   -- Google Meet (Chrome app) - moved to 'g' for workspaces
   hs.hotkey.bind(hyper, "g", function()
