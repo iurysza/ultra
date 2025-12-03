@@ -448,25 +448,10 @@ function M.minimizeAll()
   hs.alert.show(string.format("Minimized %d windows", count))
 end
 
---- Show App Exposé for current app
+--- Show App Exposé for current app (native macOS)
 function M.showAppWindows()
-  local focusedWin = hs.window.focusedWindow()
-  if not focusedWin then
-    logger.warn("showAppWindows: no focused window")
-    return
-  end
-
-  local app = focusedWin:application()
-  if not app then
-    logger.warn("showAppWindows: no application found")
-    return
-  end
-
-  logger.info(string.format("Showing windows for %s", app:name()))
-
-  -- Use Hammerspoon's expose module for app windows
-  local expose = hs.expose.new()
-  expose:toggleShow({ onlyActiveApplication = true })
+  logger.info("Triggering native App Exposé")
+  hs.spaces.toggleAppExpose()
 end
 
 return M
