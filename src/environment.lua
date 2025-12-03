@@ -50,7 +50,7 @@ end
 local APP_MAPPINGS = {
 	browser = {
 		[M.WORK] = "com.google.Chrome",
-		[M.PERSONAL] = "com.vivaldi.Vivaldi",
+		[M.PERSONAL] = "app.zen-browser.zen",
 	},
 	communication = {
 		[M.WORK] = "com.tinyspeck.slackmacgap", -- Slack

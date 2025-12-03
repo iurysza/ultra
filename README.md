@@ -139,7 +139,7 @@ Workspaces auto-minimize non-workspace windows and position apps.
 
 Hostname-based (`iury` → personal):
 
-- **Browser**: Chrome (work) / Vivaldi (personal)
+- **Browser**: Chrome (work) / Zen (personal)
 - **Communication**: Slack (work) / WhatsApp (personal)
 
 ### App-Specific Keys (Obsidian)
