@@ -87,13 +87,13 @@ function M.setup()
     wm.minimizeAll()
   end)
 
-  hs.hotkey.bind(hyper, "[", function()
-    logger.debug("Keybinding: Hyper+[ (mission control)")
+  hs.hotkey.bind(hyper, "q", function()
+    logger.debug("Keybinding: Hyper+Q (mission control)")
     hs.spaces.toggleMissionControl()
   end)
 
-  hs.hotkey.bind(hyper, "]", function()
-    logger.debug("Keybinding: Hyper+] (show app windows)")
+  hs.hotkey.bind(hyper, "e", function()
+    logger.debug("Keybinding: Hyper+E (app expose)")
     wm.showAppWindows()
   end)
 
