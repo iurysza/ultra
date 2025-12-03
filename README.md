@@ -75,7 +75,7 @@ Two-thirds splits:
 **3 Windows** - cycles 4 configs:
 
 ```
-[1] ░░░████████░░░  │  [2] ██████████░░░░  │  [3] ░░░░░░░░░░░░░░  │  [4] ░░░░██████████
+[1] ░░░████████░░░  │  [2] ██████████░░░░  │  [3] ░░░░███░░░░███  │  [4] ░░░░██████████
     Center focus         Left + stack          Equal thirds           Right + stack
 ```
 
@@ -105,7 +105,8 @@ Two-thirds splits:
 | ----- | ------------------------------ |
 | `\`   | Smart organize (cycle layouts) |
 | `=`   | Minimize all (show desktop)    |
-| `]`   | App Exposé                     |
+| `[`   | Mission Control (all windows)  |
+| `]`   | App Exposé (current app)       |
 | `←/→` | Move to left/right display     |
 | `r`   | Reload config                  |
 
