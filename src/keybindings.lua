@@ -82,8 +82,8 @@ function M.setup()
     wm.organizeWindows()
   end)
 
-  hs.hotkey.bind(hyper, "=", function()
-    logger.debug("Keybinding: Hyper+= (minimize all)")
+  hs.hotkey.bind(hyper, "w", function()
+    logger.debug("Keybinding: Hyper+W (minimize all)")
     wm.minimizeAll()
   end)
 
