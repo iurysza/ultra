@@ -104,9 +104,10 @@ Two-thirds splits:
 | Key   | Action                         |
 | ----- | ------------------------------ |
 | `\`   | Smart organize (cycle layouts) |
-| `w`   | Minimize all (show desktop)    |
-| `q`   | Mission Control (all windows)  |
-| `e`   | App Exposé (current app)       |
+| `1`   | Mission Control (all windows)  |
+| `2`   | App Exposé (current app)       |
+| `3`   | Minimize all (show desktop)    |
+| `f`   | Focus mode (center + minimize) |
 | `←/→` | Move to left/right display     |
 | `r`   | Reload config                  |
 

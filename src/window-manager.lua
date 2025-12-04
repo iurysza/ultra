@@ -448,6 +448,41 @@ function M.minimizeAll()
   hs.alert.show(string.format("Minimized %d windows", count))
 end
 
+--- Focus mode: minimize all except focused, center it at 80% height
+function M.focusMode()
+  local focusedWin = hs.window.focusedWindow()
+  if not focusedWin then
+    hs.alert.show("No focused window")
+    return
+  end
+
+  -- Minimize all other windows
+  local windows = hs.window.visibleWindows()
+  local minimizedCount = 0
+  for _, win in ipairs(windows) do
+    if win:isStandard() and win:id() ~= focusedWin:id() then
+      win:minimize()
+      minimizedCount = minimizedCount + 1
+    end
+  end
+
+  -- Position focused window: 80% height, 1.25 width ratio, centered
+  local screen = focusedWin:screen()
+  local frame = screen:frame()
+
+  local h = frame.h * 0.80
+  local w = h * 1.25
+  if w > frame.w then w = frame.w end
+
+  local x = frame.x + (frame.w - w) / 2
+  local y = frame.y + (frame.h - h) / 2
+
+  focusedWin:setFrame({ x = x, y = y, w = w, h = h })
+
+  logger.info(string.format("Focus mode: minimized %d windows", minimizedCount))
+  hs.alert.show("Focus")
+end
+
 --- Show App Exposé for current app (native macOS)
 function M.showAppWindows()
   logger.info("Triggering native App Exposé")

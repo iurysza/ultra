@@ -82,19 +82,24 @@ function M.setup()
     wm.organizeWindows()
   end)
 
-  hs.hotkey.bind(hyper, "w", function()
-    logger.debug("Keybinding: Hyper+W (minimize all)")
-    wm.minimizeAll()
-  end)
-
-  hs.hotkey.bind(hyper, "q", function()
-    logger.debug("Keybinding: Hyper+Q (mission control)")
+  hs.hotkey.bind(hyper, "1", function()
+    logger.debug("Keybinding: Hyper+1 (mission control)")
     hs.spaces.toggleMissionControl()
   end)
 
-  hs.hotkey.bind(hyper, "e", function()
-    logger.debug("Keybinding: Hyper+E (app expose)")
+  hs.hotkey.bind(hyper, "2", function()
+    logger.debug("Keybinding: Hyper+2 (app expose)")
     wm.showAppWindows()
+  end)
+
+  hs.hotkey.bind(hyper, "3", function()
+    logger.debug("Keybinding: Hyper+3 (minimize all)")
+    wm.minimizeAll()
+  end)
+
+  hs.hotkey.bind(hyper, "f", function()
+    logger.debug("Keybinding: Hyper+F (focus mode)")
+    wm.focusMode()
   end)
 
   -- Reload configuration
