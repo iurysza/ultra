@@ -14,7 +14,8 @@ Tiling window manager with:
 - **App launchers** - Quick toggle any app (launch → focus → minimize)
 - **Environment-aware** - Supports Different apps for work vs personal
 
-![Demo](assets/demo.gif)
+
+https://github.com/user-attachments/assets/6fa83b02-a90d-4f4c-9125-de99aaf3bae8
 
 ## Why
 
