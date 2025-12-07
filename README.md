@@ -67,17 +67,17 @@ Two-thirds splits:
 
 **2 Windows** - cycles 3 configs:
 
-```
-[1] ██████████░░░░  │  [2] ███████░░░░░░░  │  [3] ░░░░██████████
-    Focused 2/3         Equal 50/50            Focused 2/3 right
-```
+| [1] | [2] | [3] |
+|-----|-----|-----|
+| ██░░ | ██░░ | ░░██ |
+| Focused 2/3 | Equal 50/50 | Focused 2/3 right |
 
 **3 Windows** - cycles 4 configs:
 
-```
-[1] ░░░████████░░░  │  [2] ██████████░░░░  │  [3] ░░░░███░░░░███  │  [4] ░░░░██████████
-    Center focus         Left + stack          Equal thirds           Right + stack
-```
+| [1] | [2] | [3] | [4] |
+|-----|-----|-----|-----|
+| ██░░██ | ██░░░░ | ██░░██ | ░░░░██ |
+| Center + sides | Left 2/3 + stack | Equal thirds | Right 2/3 + stack |
 
 **4+ Windows** - cycles 4 configs (focused + stacks)
 
