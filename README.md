@@ -32,14 +32,7 @@ This gives you:
 
 ## How
 
-All shortcuts use **Hyper key** (Caps Lock → Shift+Cmd+Ctrl+Opt via Karabiner).
-
-```
-Hyper + J → Position window left 2/3
-Hyper + N → Activate Communication workspace
-Hyper + \ → Smart organize all windows
-Hyper + F2 → Toggle Ghostty terminal
-```
+Built with [Hammerspoon](https://www.hammerspoon.org/) — a macOS automation tool using Lua scripts. Hyper key (Caps Lock → Shift+Cmd+Ctrl+Opt) mapped via [Karabiner-Elements](https://karabiner-elements.pqrs.org/).
 
 ---
 
@@ -51,19 +44,16 @@ Hyper + F2 → Toggle Ghostty terminal
 ┌──────────┬──────────────────────┬──────────┐
 │   Left   │       Center         │  Right   │
 │  860px   │       1720px         │  860px   │
-│          │                      │          │
-│  Hyper+Y │      Hyper+I         │  Hyper+P │
 └──────────┴──────────────────────┴──────────┘
 
 Two-thirds splits:
 ┌─────────────────────────┬──────────┐
 │     Left 2/3            │  Right   │
 │       2580px            │  860px   │
-│       Hyper+J           │  Hyper+P │
 └─────────────────────────┴──────────┘
 ```
 
-### Smart Organize Cycling (Hyper+\\)
+### Smart Organize (Hyper+\\)
 
 **2 Windows** - cycles 3 configs:
 
@@ -87,17 +77,17 @@ Two-thirds splits:
 
 ### Window Positioning
 
-| Key | Position     | Ultrawide       | Standard   |
-| --- | ------------ | --------------- | ---------- |
-| `y` | Left third   | 860px           | Left half  |
-| `h` | Left half    | 1720px          | Left half  |
-| `j` | Left 2/3     | 2580px          | Left half  |
-| `u` | Center focus | 1200px centered | Full       |
-| `i` | Center       | 1720px          | Full       |
-| `o` | Full         | Full screen     | Full       |
-| `p` | Right third  | 860px           | Right half |
-| `l` | Right half   | 1720px          | Right half |
-| `k` | Right 2/3    | 2580px          | Right half |
+| Key | Layout | Position     | Ultrawide | Standard |
+| --- | ------ | ------------ | --------- | -------- |
+| `y` | █░░░   | Left 1/3     | 860px     | 1/3      |
+| `h` | ██░░   | Left 1/2     | 1720px    | 1/2      |
+| `j` | ███░   | Left 2/3     | 2580px    | 2/3      |
+| `u` | ░█░    | Center focus | 1200px    | 1/3      |
+| `i` | ░██░   | Center       | 1720px    | 1/3      |
+| `o` | ████   | Full         | 3440px    | Full     |
+| `k` | ░███   | Right 2/3    | 2580px    | 2/3      |
+| `l` | ░░██   | Right 1/2    | 1720px    | 1/2      |
+| `p` | ░░░█   | Right 1/3    | 860px     | 1/3      |
 
 ### Utilities
 
