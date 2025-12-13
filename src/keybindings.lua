@@ -201,6 +201,24 @@ function M.setup()
     workspaces.cycleWorkspace("m_group")
   end)
 
+  -- Input source cycling (Hyper+4)
+  hs.hotkey.bind(hyper, "4", function()
+    local layouts = hs.keycodes.layouts()
+    local current = hs.keycodes.currentLayout()
+    local currentIdx = 1
+    for i, layout in ipairs(layouts) do
+      if layout == current then
+        currentIdx = i
+        break
+      end
+    end
+    local nextIdx = (currentIdx % #layouts) + 1
+    local nextLayout = layouts[nextIdx]
+    hs.keycodes.setLayout(nextLayout)
+    logger.debug("Input source: " .. current .. " -> " .. nextLayout)
+    hs.alert.show(nextLayout, 0.8)
+  end)
+
   logger.info("Keybindings setup complete")
 end
 
