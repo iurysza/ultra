@@ -12,6 +12,57 @@ local M = {}
 -- Hyper key: Shift+Cmd+Ctrl+Opt (mapped via Karabiner from Caps Lock)
 local hyper = { "shift", "cmd", "ctrl", "alt" }
 
+--- Get config (from global or fallback)
+local function getConfig()
+  return _G.ultraConfig or {}
+end
+
+--- Setup app launcher keybindings from config
+local function setupLaunchers()
+  local cfg = getConfig()
+  local launchers = cfg.launchers or {}
+
+  for _, launcher in ipairs(launchers) do
+    local key = launcher.key
+    local name = launcher.name or key
+
+    if launcher.action == "playPause" then
+      -- Special action: play/pause
+      hs.hotkey.bind(hyper, key, function()
+        logger.debug("Keybinding: Hyper+" .. key .. " (Play/Pause)")
+        appLauncher.togglePlayPause()
+      end)
+    elseif launcher.appleScript then
+      -- AppleScript action
+      hs.hotkey.bind(hyper, key, function()
+        logger.debug("Keybinding: Hyper+" .. key .. " (" .. name .. ")")
+        appLauncher.executeAppleScript(launcher.appleScript)
+      end)
+    elseif launcher.appRef then
+      -- Environment-aware app reference
+      hs.hotkey.bind(hyper, key, function()
+        local bundleID = environment.resolveApp(launcher.appRef)
+        logger.debug("Keybinding: Hyper+" .. key .. " (" .. name .. ": " .. bundleID .. ")")
+        appLauncher.toggleApp(bundleID)
+      end)
+    elseif launcher.app then
+      -- Direct bundle ID
+      hs.hotkey.bind(hyper, key, function()
+        logger.debug("Keybinding: Hyper+" .. key .. " (" .. name .. ")")
+        appLauncher.toggleApp(launcher.app)
+      end)
+    elseif launcher.appName then
+      -- App by name (for apps without stable bundle IDs)
+      hs.hotkey.bind(hyper, key, function()
+        logger.debug("Keybinding: Hyper+" .. key .. " (" .. name .. ")")
+        appLauncher.toggleAppByName(launcher.appName)
+      end)
+    end
+
+    logger.debug("Registered launcher: Hyper+" .. key .. " -> " .. name)
+  end
+end
+
 --- Setup all keybindings
 function M.setup()
   logger.info("Setting up keybindings")
@@ -108,83 +159,9 @@ function M.setup()
     hs.reload()
   end)
 
-  -- App Launchers (smart toggle: launch → focus → minimize)
+  -- App Launchers (config-driven)
   logger.info("Setting up app launcher keybindings")
-
-  -- Media control
-  hs.hotkey.bind(hyper, "f1", function()
-    logger.debug("Keybinding: Hyper+F1 (Play/Pause)")
-    appLauncher.togglePlayPause()
-  end)
-
-  -- Ghostty
-  hs.hotkey.bind(hyper, "f2", function()
-    logger.debug("Keybinding: Hyper+F2 (Ghostty)")
-    appLauncher.toggleApp("com.mitchellh.ghostty")
-  end)
-
-  -- Cursor
-  hs.hotkey.bind(hyper, "f3", function()
-    logger.debug("Keybinding: Hyper+F3 (Cursor)")
-    appLauncher.toggleApp("com.todesktop.230313mzl4w4u92")
-  end)
-
-  -- Spotify
-  hs.hotkey.bind(hyper, "f4", function()
-    logger.debug("Keybinding: Hyper+F4 (Spotify)")
-    appLauncher.toggleApp("com.spotify.client")
-  end)
-
-  -- Slack
-  hs.hotkey.bind(hyper, "f8", function()
-    logger.debug("Keybinding: Hyper+F8 (Slack)")
-    appLauncher.toggleApp("com.tinyspeck.slackmacgap")
-  end)
-
-  -- Android Studio
-  hs.hotkey.bind(hyper, "f9", function()
-    logger.debug("Keybinding: Hyper+F9 (Android Studio)")
-    appLauncher.toggleAppByName("Android Studio")
-  end)
-
-  -- Obsidian
-  hs.hotkey.bind(hyper, "f10", function()
-    logger.debug("Keybinding: Hyper+F10 (Obsidian)")
-    appLauncher.toggleApp("md.obsidian")
-  end)
-
-  -- Browser (environment-aware: Chrome on work, Vivaldi on personal)
-  hs.hotkey.bind(hyper, "f11", function()
-    local browser = environment.resolveApp("browser")
-    logger.debug("Keybinding: Hyper+F11 (Browser: " .. browser .. ")")
-    appLauncher.toggleApp(browser)
-  end)
-
-  -- WhatsApp
-  hs.hotkey.bind(hyper, "f12", function()
-    logger.debug("Keybinding: Hyper+F12 (WhatsApp)")
-    appLauncher.toggleApp("net.whatsapp.WhatsApp")
-  end)
-
-  -- Msty
-  hs.hotkey.bind(hyper, ";", function()
-    logger.debug("Keybinding: Hyper+; (Msty)")
-    appLauncher.toggleApp("MstyStudio")
-  end)
-
-  -- Google Meet (Chrome app) - moved to 'g' for workspaces
-  hs.hotkey.bind(hyper, "g", function()
-    logger.debug("Keybinding: Hyper+G (Google Meet)")
-    appLauncher.toggleApp("com.google.Chrome.app.kjgfgldnnfoeklkmfkjfagphfepbbdan")
-  end)
-
-  -- scrcpy (AppleScript focus)
-  hs.hotkey.bind(hyper, "5", function()
-    logger.debug("Keybinding: Hyper+5 (scrcpy)")
-    appLauncher.executeAppleScript(
-      'tell application "System Events" to tell process "scrcpy" to set frontmost to true'
-    )
-  end)
+  setupLaunchers()
 
   -- Workspace shortcuts (cycling)
   logger.info("Setting up workspace keybindings")

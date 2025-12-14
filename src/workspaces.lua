@@ -9,50 +9,70 @@ local M = {}
 -- Cycle state for workspace groups
 local cycleState = {}
 
--- Workspace definitions (environment-aware)
-local workspaces = {
-	comms = {
-		name = "Communication",
-		apps = {
-			{ bundleID = environment.resolveApp("communication") }, -- Slack (work) / WhatsApp (personal)
-			{ bundleID = "com.google.Chrome.app.kjgfgldnnfoeklkmfkjfagphfepbbdan" }, -- Google Meet
-			{ bundleID = environment.resolveApp("browser") }, -- Chrome (work) / Vivaldi (personal)
-		},
-		layouts = { "left", "center", "right" }, -- Equal 3-way split
-	},
-	web = {
-		name = "Web",
-		apps = {
-			{ bundleID = environment.resolveApp("browser") }, -- Chrome (work) / Vivaldi (personal)
-			{ bundleID = environment.resolveApp("browser") }, -- Same browser, window 2
-		},
-		layouts = { "leftHalf", "rightHalf" }, -- 50/50 split
-		multiWindow = true, -- Special flag for handling multiple windows of same app
-	},
-	webdev = {
-		name = "Coding",
-		apps = {
-			{ bundleID = "com.todesktop.230313mzl4w4u92" }, -- Cursor
-			{ bundleID = "com.mitchellh.ghostty" }, -- Ghostty
-			{ bundleID = environment.resolveApp("browser") }, -- Chrome (work) / Vivaldi (personal)
-		},
-		layouts = { "left", "center", "right" }, -- Equal 3-way split
-	},
-	androiddev = {
-		name = "Android",
-		apps = {
-			{ appName = "Android Studio" }, -- Use name (no bundle ID)
-			{ bundleID = "com.mitchellh.ghostty" }, -- Ghostty
-		},
-		layouts = { "leftHalf", "rightHalf" }, -- 50/50 split
-	},
-}
+--- Get config (from global or fallback)
+local function getConfig()
+  return _G.ultraConfig or {}
+end
 
--- Workspace groups for cycling
-local workspaceGroups = {
-	n_group = { "comms", "web" }, -- Hyper+N cycles: Communication -> Web
-	m_group = { "webdev", "androiddev" }, -- Hyper+M cycles: Coding -> Android
-}
+--- Resolve app config (handles appRef to resolve environment-aware apps)
+--- @param appConfig table App config from config.json
+--- @return table Resolved app config with bundleID or appName
+local function resolveAppConfig(appConfig)
+  if appConfig.appRef then
+    -- Resolve appRef to environment-aware bundle ID
+    local bundleID = environment.resolveApp(appConfig.appRef)
+    if bundleID then
+      return { bundleID = bundleID }
+    end
+    logger.warn("Could not resolve appRef: " .. appConfig.appRef)
+    return nil
+  elseif appConfig.app then
+    return { bundleID = appConfig.app }
+  elseif appConfig.appName then
+    return { appName = appConfig.appName }
+  end
+  return nil
+end
+
+--- Build workspace definitions from config
+local function getWorkspaces()
+  local cfg = getConfig()
+  local workspacesCfg = cfg.workspaces or {}
+
+  local workspaces = {}
+  for id, wsCfg in pairs(workspacesCfg) do
+    local apps = {}
+    for _, appCfg in ipairs(wsCfg.apps or {}) do
+      local resolved = resolveAppConfig(appCfg)
+      if resolved then
+        table.insert(apps, resolved)
+      end
+    end
+
+    workspaces[id] = {
+      name = wsCfg.name or id,
+      apps = apps,
+      layouts = wsCfg.layouts or {},
+      multiWindow = wsCfg.multiWindow,
+    }
+  end
+
+  return workspaces
+end
+
+--- Get workspace groups from config
+local function getWorkspaceGroups()
+  local cfg = getConfig()
+  local groupsCfg = cfg.workspaceGroups or {}
+
+  -- Convert from config format (n, m) to internal format (n_group, m_group)
+  local groups = {}
+  for key, workspaceList in pairs(groupsCfg) do
+    groups[key .. "_group"] = workspaceList
+  end
+
+  return groups
+end
 
 -- Launch or focus a single app
 local function launchApp(appConfig)
@@ -256,12 +276,13 @@ end
 
 -- Activate a workspace
 function M.activateWorkspace(workspaceId)
-	local workspace = workspaces[workspaceId]
-	if not workspace then
-		logger.error("Unknown workspace: " .. workspaceId)
-		hs.alert.show("Unknown workspace: " .. workspaceId)
-		return
-	end
+  local workspaces = getWorkspaces()
+  local workspace = workspaces[workspaceId]
+  if not workspace then
+    logger.error("Unknown workspace: " .. workspaceId)
+    hs.alert.show("Unknown workspace: " .. workspaceId)
+    return
+  end
 
 	logger.info("Activating workspace: " .. workspace.name)
 	hs.alert.show("Activating: " .. workspace.name, 1)
@@ -305,11 +326,12 @@ end
 
 -- Cycle through workspace group
 function M.cycleWorkspace(groupId)
-	local group = workspaceGroups[groupId]
-	if not group then
-		logger.error("Unknown workspace group: " .. groupId)
-		return
-	end
+  local workspaceGroups = getWorkspaceGroups()
+  local group = workspaceGroups[groupId]
+  if not group then
+    logger.error("Unknown workspace group: " .. groupId)
+    return
+  end
 
 	-- Get current cycle state (default to 0)
 	local currentIndex = cycleState[groupId] or 0
@@ -335,12 +357,13 @@ function M.cycleWorkspace(groupId)
 end
 
 -- Get list of available workspaces
-function M.getWorkspaces()
-	local list = {}
-	for id, workspace in pairs(workspaces) do
-		table.insert(list, { id = id, name = workspace.name })
-	end
-	return list
+function M.getWorkspaceList()
+  local workspaces = getWorkspaces()
+  local list = {}
+  for id, workspace in pairs(workspaces) do
+    table.insert(list, { id = id, name = workspace.name })
+  end
+  return list
 end
 
 logger.info("Workspaces module loaded")

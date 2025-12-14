@@ -1,20 +1,33 @@
---- Hammerspoon Window Manager
+--- Ultra Window Manager
 --- Multi-display window manager with adaptive ultrawide support (aspect ratio detection)
 --- @author iury.souza
 --- @module init
 
--- Configuration
-local config = {
-  debug = true,
-  logFile = os.getenv("HOME") .. "/.config/hammerspoon/debug.log",
-  maxLogLines = 100,
-}
-
 -- Enable IPC for CLI access
 hs.ipc.cliInstall()
 
--- Load modules
+-- Actual config directory (hs.configdir points to bootstrap location)
+local ultraDir = os.getenv("HOME") .. "/.config/ultra"
+
+-- Load configuration first
+local config = require("src.config")
+local cfg = config.load()
+
+-- Load logger early
 local logger = require("src.logger")
+
+-- Initialize logger with config
+local loggingConfig = cfg.logging or {}
+logger.init({
+  enabled = loggingConfig.enabled ~= false,
+  logFile = ultraDir .. "/debug.log",
+  maxLogLines = loggingConfig.maxLines or 100,
+})
+
+-- Make config globally available for modules
+_G.ultraConfig = cfg
+
+-- Load modules
 local environment = require("src.environment")
 local displays = require("src.displays")
 require("src.layouts") -- Loaded for use in other modules
@@ -24,15 +37,8 @@ local keybindings = require("src.keybindings")
 local appSpecificKeys = require("src.app-specific-keys")
 local notifications = require("src.notifications")
 
--- Initialize logger
-logger.init({
-  enabled = config.debug,
-  logFile = config.logFile,
-  maxLogLines = config.maxLogLines,
-})
-
 logger.info("========================================")
-logger.info("Hammerspoon Window Manager Starting")
+logger.info("Ultra Window Manager Starting")
 logger.info("========================================")
 
 -- Log system info
@@ -70,7 +76,7 @@ appSpecificKeys.setup()
 _G.notifications = notifications
 
 -- Show success notification
-hs.alert.show("Hammerspoon Window Manager Loaded", 5)
+hs.alert.show("Ultra Window Manager Loaded", 5)
 logger.info("Window Manager loaded successfully")
 
 -- Watch for display changes
@@ -84,10 +90,10 @@ displayWatcher:start()
 
 -- Watch for config file changes (auto-reload)
 hs.pathwatcher
-  .new(os.getenv("HOME") .. "/.hammerspoon/", function(files)
+  .new(ultraDir, function(files)
     local doReload = false
     for _, file in pairs(files) do
-      if file:match("%.lua$") then
+      if file:match("%.lua$") or file:match("config%.json$") then
         doReload = true
         break
       end

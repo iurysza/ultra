@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "environment": {
+    "personalHostnamePattern": "iury",
+    "workHostnamePattern": "klarna"
+  },
+  "apps": {
+    "browser": {
+      "work": "com.google.Chrome",
+      "personal": "app.zen-browser.zen"
+    },
+    "communication": {
+      "work": "com.tinyspeck.slackmacgap",
+      "personal": "net.whatsapp.WhatsApp"
+    }
+  },
+  "launchers": [
+    { "key": "F1", "action": "playPause", "name": "Play/Pause" },
+    { "key": "F2", "app": "com.mitchellh.ghostty", "name": "Ghostty" },
+    { "key": "F3", "app": "com.todesktop.230313mzl4w4u92", "name": "Cursor" },
+    { "key": "F4", "app": "com.spotify.client", "name": "Spotify" },
+    { "key": "F8", "app": "com.tinyspeck.slackmacgap", "name": "Slack" },
+    { "key": "F9", "appName": "Android Studio", "name": "Android Studio" },
+    { "key": "F10", "app": "md.obsidian", "name": "Obsidian" },
+    { "key": "F11", "appRef": "browser", "name": "Browser" },
+    { "key": "F12", "app": "net.whatsapp.WhatsApp", "name": "WhatsApp" },
+    { "key": "G", "app": "com.google.Chrome.app.kjgfgldnnfoeklkmfkjfagphfepbbdan", "name": "Meet" },
+    { "key": ";", "appName": "MstyStudio", "name": "Msty" },
+    { "key": "5", "appleScript": "tell application \"System Events\" to tell process \"scrcpy\" to set frontmost to true", "name": "scrcpy" }
+  ],
+  "workspaces": {
+    "comms": {
+      "name": "Communication",
+      "apps": [
+        { "appRef": "communication" },
+        { "app": "com.google.Chrome.app.kjgfgldnnfoeklkmfkjfagphfepbbdan" },
+        { "appRef": "browser" }
+      ],
+      "layouts": ["left", "center", "right"]
+    },
+    "web": {
+      "name": "Web",
+      "apps": [
+        { "appRef": "browser" },
+        { "appRef": "browser" }
+      ],
+      "layouts": ["leftHalf", "rightHalf"],
+      "multiWindow": true
+    },
+    "webdev": {
+      "name": "Coding",
+      "apps": [
+        { "app": "com.todesktop.230313mzl4w4u92" },
+        { "app": "com.mitchellh.ghostty" },
+        { "appRef": "browser" }
+      ],
+      "layouts": ["left", "center", "right"]
+    },
+    "androiddev": {
+      "name": "Android",
+      "apps": [
+        { "appName": "Android Studio" },
+        { "app": "com.mitchellh.ghostty" }
+      ],
+      "layouts": ["leftHalf", "rightHalf"]
+    }
+  },
+  "workspaceGroups": {
+    "n": ["comms", "web"],
+    "m": ["webdev", "androiddev"]
+  },
+  "layouts": {
+    "ultrawide": {
+      "left": { "x": 0, "y": 0, "w": 860, "h": 1440 },
+      "center": { "x": 860, "y": 0, "w": 1720, "h": 1440 },
+      "right": { "x": 2580, "y": 0, "w": 860, "h": 1440 },
+      "full": { "x": 0, "y": 0, "w": 3440, "h": 1440 },
+      "leftTwoThirds": { "x": 0, "y": 0, "w": 2580, "h": 1440 },
+      "rightTwoThirds": { "x": 860, "y": 0, "w": 2580, "h": 1440 },
+      "leftHalf": { "x": 0, "y": 0, "w": 1720, "h": 1440 },
+      "rightHalf": { "x": 1720, "y": 0, "w": 1720, "h": 1440 },
+      "centerFocus": { "x": 1120, "y": 0, "w": 1200, "h": 1440 }
+    }
+  },
+  "logging": {
+    "enabled": true,
+    "maxLines": 100
+  }
+}

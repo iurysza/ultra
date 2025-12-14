@@ -6,10 +6,13 @@ local displays = require("src.displays")
 local logger = require("src.logger")
 local M = {}
 
--- Ultrawide layout constants (optimized for 3440x1440)
--- System: 860px + 1720px + 860px = 3440px
--- Note: Applied to any display with aspect ratio >= 2.3 (21:9 or wider)
-local ULTRAWIDE_LAYOUTS = {
+--- Get config (from global or fallback)
+local function getConfig()
+  return _G.ultraConfig or {}
+end
+
+-- Default ultrawide layouts (used if config not available)
+local DEFAULT_ULTRAWIDE_LAYOUTS = {
   left = { x = 0, y = 0, w = 860, h = 1440 },
   center = { x = 860, y = 0, w = 1720, h = 1440 },
   right = { x = 2580, y = 0, w = 860, h = 1440 },
@@ -20,6 +23,13 @@ local ULTRAWIDE_LAYOUTS = {
   rightHalf = { x = 1720, y = 0, w = 1720, h = 1440 },
   centerFocus = { x = 1120, y = 0, w = 1200, h = 1440 },
 }
+
+--- Get ultrawide layouts from config or defaults
+local function getUltrawideLayouts()
+  local cfg = getConfig()
+  local layoutsCfg = cfg.layouts or {}
+  return layoutsCfg.ultrawide or DEFAULT_ULTRAWIDE_LAYOUTS
+end
 
 --- Get layout for position on given screen
 --- @param position string Layout position name
@@ -45,7 +55,8 @@ function M.getLayout(position, screen)
 
   if isUltrawide then
     -- Use fixed pixel layouts for ultrawide
-    local layout = ULTRAWIDE_LAYOUTS[position]
+    local ultrawideLayouts = getUltrawideLayouts()
+    local layout = ultrawideLayouts[position]
     if not layout then
       logger.warn(string.format("Unknown ultrawide layout: %s", position))
       return nil
@@ -107,8 +118,9 @@ end
 --- @return table Array of layout names
 function M.getAvailableLayouts(screen)
   if displays.isUltrawide(screen) then
+    local ultrawideLayouts = getUltrawideLayouts()
     local layouts = {}
-    for name, _ in pairs(ULTRAWIDE_LAYOUTS) do
+    for name, _ in pairs(ultrawideLayouts) do
       table.insert(layouts, name)
     end
     return layouts
