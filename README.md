@@ -14,7 +14,6 @@ Tiling window manager with:
 - **App launchers** - Quick toggle any app (launch → focus → minimize)
 - **Environment-aware** - Supports Different apps for work vs personal
 
-
 https://github.com/user-attachments/assets/6fa83b02-a90d-4f4c-9125-de99aaf3bae8
 
 ## Why
@@ -58,16 +57,16 @@ Two-thirds splits:
 
 **2 Windows** - cycles 3 configs:
 
-| [1] | [2] | [3] |
-|-----|-----|-----|
-| ██░░ | ██░░ | ░░██ |
+| [1]         | [2]         | [3]               |
+| ----------- | ----------- | ----------------- |
+| ██░░        | ██░░        | ░░██              |
 | Focused 2/3 | Equal 50/50 | Focused 2/3 right |
 
 **3 Windows** - cycles 4 configs:
 
-| [1] | [2] | [3] | [4] |
-|-----|-----|-----|-----|
-| ██░░██ | ██░░░░ | ██░░██ | ░░░░██ |
+| [1]            | [2]              | [3]          | [4]               |
+| -------------- | ---------------- | ------------ | ----------------- |
+| ██░░██         | ██░░░░           | ██░░██       | ░░░░██            |
 | Center + sides | Left 2/3 + stack | Equal thirds | Right 2/3 + stack |
 
 **4+ Windows** - cycles 4 configs (focused + stacks)
@@ -130,7 +129,7 @@ Workspaces auto-minimize non-workspace windows and position apps.
 
 ### Environment Detection
 
-Hostname-based (`iury` → personal):
+Hostname-based detection:
 
 - **Browser**: Chrome (work) / Zen (personal)
 - **Communication**: Slack (work) / WhatsApp (personal)
@@ -154,14 +153,49 @@ When Obsidian is frontmost:
 ### Setup
 
 ```bash
-# Symlink config
-ln -s ~/.config/hammerspoon ~/.hammerspoon
+# Clone to ~/.config/ultra
+git clone https://github.com/iurysza/ultra ~/.config/ultra
+
+# Run install script (creates bootstrap file)
+~/.config/ultra/scripts/install.sh
 
 # Launch Hammerspoon
 open -a Hammerspoon
 
 # Grant accessibility permissions when prompted
 ```
+
+The install script creates a minimal `~/.hammerspoon/init.lua` bootstrap that loads from `~/.config/ultra/`.
+
+### Configuration
+
+Copy default config and customize:
+
+```bash
+cp ~/.config/ultra/config.default.json ~/.config/ultra/config.json
+```
+
+Edit `config.json` to customize:
+
+```json
+{
+  "launchers": [
+    { "key": "F2", "app": "com.mitchellh.ghostty", "name": "Ghostty" },
+    { "key": "F11", "appRef": "browser" }
+  ],
+  "apps": {
+    "browser": { "work": "com.google.Chrome", "personal": "app.zen-browser.zen" }
+  },
+  "workspaces": {
+    "comms": { "apps": ["slack", "meet", "browser"], "layouts": ["left", "center", "right"] }
+  },
+  "environment": {
+    "personalHostnamePattern": "your-hostname"
+  }
+}
+```
+
+Config changes auto-reload (no restart needed).
 
 ### Karabiner Hyper Key
 
@@ -224,10 +258,32 @@ notify-claude error "Tests failed"
 ./scripts/format.sh
 
 # Debug logs
-tail -f ~/.config/hammerspoon/debug.log
+tail -f ~/.config/ultra/debug.log
 
 # Reload
 Hyper+R
+```
+
+### Editor Support
+
+LuaLS type definitions included in `types/hs.lua`. Works with Neovim/LazyVim out of the box - provides autocomplete and type checking for Hammerspoon APIs.
+
+### Project Structure
+
+```
+~/.config/ultra/
+├── init.lua              # Entry point
+├── config.default.json   # Default configuration
+├── config.json           # User configuration (gitignored)
+├── src/
+│   ├── config.lua        # Config loader with hot-reload
+│   ├── keybindings.lua   # Hotkey definitions
+│   ├── workspaces.lua    # Workspace presets
+│   ├── layouts.lua       # Window layouts
+│   ├── app-launcher.lua  # App toggle logic
+│   └── ...
+└── types/
+    └── hs.lua            # LuaLS type stubs
 ```
 
 ---
@@ -238,7 +294,7 @@ Hyper+R
 
 1. Check Hammerspoon accessibility permissions
 2. Verify Karabiner Hyper key mapping
-3. Check logs: `tail -f ~/.config/hammerspoon/debug.log`
+3. Check logs: `tail -f ~/.config/ultra/debug.log`
 
 **Ultrawide detection**:
 
@@ -246,9 +302,10 @@ Hyper+R
 
 **Config not loading**:
 
-1. Verify symlink: `ls -la ~/.hammerspoon`
-2. Check for Lua syntax errors in logs
-3. Reload: Hyper+R
+1. Verify bootstrap: `cat ~/.hammerspoon/init.lua`
+2. Check JSON syntax: `jq . ~/.config/ultra/config.json`
+3. Check logs for errors
+4. Reload: Hyper+R
 
 ---
 
