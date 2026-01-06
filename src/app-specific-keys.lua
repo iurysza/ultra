@@ -7,6 +7,8 @@ local M = {}
 
 -- Store hotkeys for cleanup
 local obsidianHotkeys = {}
+-- Store watcher to prevent garbage collection
+local appWatcher = nil
 
 --- Setup Obsidian-specific keybindings
 local function setupObsidianKeys()
@@ -83,7 +85,7 @@ function M.setup()
   setupObsidianKeys()
 
   -- Watch for app changes
-  local appWatcher = hs.application.watcher.new(function(appName, eventType, app)
+  appWatcher = hs.application.watcher.new(function(appName, eventType, app)
     if eventType == hs.application.watcher.activated then
       if app:bundleID() == "md.obsidian" then
         logger.debug("Obsidian activated - enabling custom keys")
