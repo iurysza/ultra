@@ -1,38 +1,35 @@
 # ULTRA
 
-**ULTRA Lays Tiles Right Away** — a keyboard-driven window manager for macOS, optimized for ultrawide monitors.
+**U**ltra **L**ays **T**iles **R**ight **A**way - a keyboard-driven window manager for macOS, built for ultrawide monitors.
 
 ![Hero](assets/hero-keyboard.png)
 
 ## What
 
-Tiling window manager with:
+A tiling window manager featuring:
 
-- **Adaptive layouts** - Fixed-pixel for ultrawide, proportional for standard displays
-- **Workspaces** - Multi-app presets (coding, comms, web) activated with one key
-- **Smart organize** - Cycle through layouts based on window count
-- **App launchers** - Quick toggle any app (launch → focus → minimize)
-- **Environment-aware** - Supports Different apps for work vs personal
+- **Adaptive layouts** - Fixed-pixel zones for ultrawides, proportional for standard displays
+- **Workspaces** - Multi-app presets (coding, comms, web) with a single keystroke
+- **Smart organize** - Cycle layouts based on window count
+- **App launchers** - One key to launch, focus, or minimize any app
+- **Environment-aware** - Different app sets for work vs personal
 
 https://github.com/user-attachments/assets/6fa83b02-a90d-4f4c-9125-de99aaf3bae8
 
 ## Why
 
-Default macOS window management is mouse-heavy. Previously I've relied on different app combinations for supporting
-a small subset of these features. I switched to a Ultrawide monitor recently and gradually started building some of
-these features through scripts. Finally, I learned about Hammerspoon and decided to build something that codifies my
-workflow in a single place.
+macOS window management requires too much mousing. I'd been duct-taping scripts together since switching to an ultrawide. Hammerspoon let me consolidate everything into one system.
 
-This gives you:
+Now I get:
 
-- Instant window positioning via keyboard
-- Ultrawide-specific layouts (center-focused 860 + 1720 + 860)
-- Workspace switching without manually arranging windows
-- One key to launch/focus/hide any app
+- Keyboard-first window positioning
+- Ultrawide-specific layouts (860 + 1720 + 860 center-focused)
+- Workspace switching without manual arranging
+- Single-key app toggle (launch → focus → hide)
 
 ## How
 
-Built with [Hammerspoon](https://www.hammerspoon.org/) — a macOS automation tool using Lua scripts. Hyper key (Caps Lock → Shift+Cmd+Ctrl+Opt) mapped via [Karabiner-Elements](https://karabiner-elements.pqrs.org/).
+Built with [Hammerspoon](https://www.hammerspoon.org/) (Lua-based macOS automation). Hyper key (Caps Lock → Shift+Cmd+Ctrl+Opt) via [Karabiner-Elements](https://karabiner-elements.pqrs.org/).
 
 ---
 
