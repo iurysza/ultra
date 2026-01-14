@@ -98,7 +98,8 @@ Two-thirds splits:
 | `2`   | App Exposé (current app)       |
 | `3`   | Minimize all (show desktop)    |
 | `f`   | Focus mode (center + minimize) |
-| `←/→` | Move to left/right display     |
+| `[/]` | Move to left/right display     |
+| `4`   | Cycle input source (keyboard)  |
 | `r`   | Reload config                  |
 
 ### App Launchers
@@ -166,6 +167,14 @@ open -a Hammerspoon
 ```
 
 The install script creates a minimal `~/.hammerspoon/init.lua` bootstrap that loads from `~/.config/ultra/`.
+
+### Uninstall
+
+```bash
+~/.config/ultra/scripts/uninstall.sh
+```
+
+Removes bootstrap and CLI symlink. Optionally deletes config directory.
 
 ### Configuration
 
