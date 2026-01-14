@@ -2,7 +2,7 @@
 
 **U**ltra **L**ays **T**iles **R**ight **A**way - a keyboard-driven window manager for macOS, built for ultrawide monitors.
 
-![Hero](assets/hero-keyboard.png)
+![Hero](assets/hero-keyboard.webp)
 
 ## What
 
