@@ -117,13 +117,13 @@ function M.setup()
   end)
 
   -- Monitor switching
-  hs.hotkey.bind(hyper, "left", function()
-    logger.debug("Keybinding: Hyper+Left (move to left display)")
+  hs.hotkey.bind(hyper, "[", function()
+    logger.debug("Keybinding: Hyper+[ (move to left display)")
     wm.moveToDisplay("left")
   end)
 
-  hs.hotkey.bind(hyper, "right", function()
-    logger.debug("Keybinding: Hyper+Right (move to right display)")
+  hs.hotkey.bind(hyper, "]", function()
+    logger.debug("Keybinding: Hyper+] (move to right display)")
     wm.moveToDisplay("right")
   end)
 

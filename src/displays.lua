@@ -124,9 +124,11 @@ function M.findDisplayByPosition(direction, currentScreen)
 
   local targetScreen
   if direction == "left" then
-    targetScreen = currentScreen:toWest()
+    -- Try west, then north, then previous (cycle fallback)
+    targetScreen = currentScreen:toWest() or currentScreen:toNorth() or currentScreen:previous()
   elseif direction == "right" then
-    targetScreen = currentScreen:toEast()
+    -- Try east, then south, then next (cycle fallback)
+    targetScreen = currentScreen:toEast() or currentScreen:toSouth() or currentScreen:next()
   else
     logger.error(string.format("findDisplayByPosition: invalid direction '%s'", direction))
     return nil
