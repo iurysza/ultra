@@ -86,13 +86,13 @@ function M.setup()
 
   -- CENTER-ALIGNED POSITIONS
   hs.hotkey.bind(hyper, "u", function()
-    logger.debug("Keybinding: Hyper+u (centerFocus - small center)")
-    wm.positionWindow("centerFocus")
+    logger.debug("Keybinding: Hyper+u (center - large center split)")
+    wm.positionWindow("center")
   end)
 
   hs.hotkey.bind(hyper, "i", function()
-    logger.debug("Keybinding: Hyper+i (center - large center split)")
-    wm.positionWindow("center")
+    logger.debug("Keybinding: Hyper+i (centerWide - ~2k center)")
+    wm.positionWindow("centerWide")
   end)
 
   hs.hotkey.bind(hyper, "o", function()
@@ -176,6 +176,12 @@ function M.setup()
   hs.hotkey.bind(hyper, "m", function()
     logger.debug("Keybinding: Hyper+M (Cycle: Coding <-> Android)")
     workspaces.cycleWorkspace("m_group")
+  end)
+
+  -- Hyper+A: Agentic coding workspace
+  hs.hotkey.bind(hyper, "a", function()
+    logger.debug("Keybinding: Hyper+A (Agentic)")
+    workspaces.cycleWorkspace("a_group")
   end)
 
   -- Input source cycling (Hyper+4)

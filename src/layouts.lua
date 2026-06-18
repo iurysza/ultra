@@ -22,6 +22,7 @@ local DEFAULT_ULTRAWIDE_LAYOUTS = {
   leftHalf = { x = 0, y = 0, w = 1720, h = 1440 },
   rightHalf = { x = 1720, y = 0, w = 1720, h = 1440 },
   centerFocus = { x = 1120, y = 0, w = 1200, h = 1440 },
+  centerWide = { x = 720, y = 0, w = 2000, h = 1440 },
 }
 
 --- Get ultrawide layouts from config or defaults
@@ -94,6 +95,7 @@ function M.getProportionalLayout(position, frame)
     -- Center positions
     center = { x = frame.x + thirdW, y = frame.y, w = thirdW, h = frame.h }, -- Center third
     centerFocus = { x = frame.x + thirdW, y = frame.y, w = thirdW, h = frame.h }, -- Center third
+    centerWide = { x = frame.x + (frame.w * 0.21), y = frame.y, w = frame.w * 0.58, h = frame.h }, -- ~2k wide center
 
     -- Right positions
     right = { x = frame.x + twoThirdsW, y = frame.y, w = thirdW, h = frame.h }, -- Right third
@@ -135,6 +137,7 @@ function M.getAvailableLayouts(screen)
       "leftTwoThirds",
       "rightTwoThirds",
       "centerFocus",
+      "centerWide",
     }
   end
 end

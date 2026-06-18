@@ -18,20 +18,27 @@ end
 --- @param appConfig table App config from config.json
 --- @return table Resolved app config with bundleID or appName
 local function resolveAppConfig(appConfig)
+  local resolved = nil
   if appConfig.appRef then
     -- Resolve appRef to environment-aware bundle ID
     local bundleID = environment.resolveApp(appConfig.appRef)
     if bundleID then
-      return { bundleID = bundleID }
+      resolved = { bundleID = bundleID }
+    else
+      logger.warn("Could not resolve appRef: " .. appConfig.appRef)
+      return nil
     end
-    logger.warn("Could not resolve appRef: " .. appConfig.appRef)
-    return nil
   elseif appConfig.app then
-    return { bundleID = appConfig.app }
+    resolved = { bundleID = appConfig.app }
   elseif appConfig.appName then
-    return { appName = appConfig.appName }
+    resolved = { appName = appConfig.appName }
   end
-  return nil
+
+  if resolved and appConfig.url then
+    resolved.url = appConfig.url
+  end
+
+  return resolved
 end
 
 --- Build workspace definitions from config
@@ -74,12 +81,26 @@ local function getWorkspaceGroups()
   return groups
 end
 
+--- Open a URL in an app via AppleScript
+--- @param appName string The application name
+--- @param url string The URL to open
+local function openUrlInApp(appName, url)
+  logger.info(string.format("Opening URL in %s: %s", appName, url))
+  local script = string.format('tell application "%s" to open location "%s"', appName, url)
+  local ok, result = hs.osascript.applescript(script)
+  if not ok then
+    logger.error(string.format("Failed to open URL in %s: %s", appName, result))
+  end
+end
+
 -- Launch or focus a single app
 local function launchApp(appConfig)
+	local appName = nil
 	if appConfig.bundleID then
 		logger.info("Launching/focusing app with bundle ID: " .. appConfig.bundleID)
 		local app = hs.application.get(appConfig.bundleID)
 		if app then
+			appName = app:name()
 			-- Un-minimize all windows before activating
 			for _, window in ipairs(app:allWindows()) do
 				if window:isMinimized() then
@@ -95,6 +116,7 @@ local function launchApp(appConfig)
 		logger.info("Launching/focusing app by name: " .. appConfig.appName)
 		local app = hs.application.get(appConfig.appName)
 		if app then
+			appName = app:name()
 			-- Un-minimize all windows before activating
 			for _, window in ipairs(app:allWindows()) do
 				if window:isMinimized() then
@@ -107,6 +129,13 @@ local function launchApp(appConfig)
 			hs.application.launchOrFocus(appConfig.appName)
 		end
 	end
+
+  -- Open configured URL after giving the app a moment to launch
+  if appConfig.url and appName then
+    hs.timer.doAfter(0.6, function()
+      openUrlInApp(appName, appConfig.url)
+    end)
+  end
 end
 
 -- Get main window for an app

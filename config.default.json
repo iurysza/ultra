@@ -63,11 +63,21 @@
         { "app": "com.mitchellh.ghostty" }
       ],
       "layouts": ["leftHalf", "rightHalf"]
+    },
+    "agentic": {
+      "name": "Agentic",
+      "apps": [
+        { "app": "app.zen-browser.zen", "url": "http://localhost:9999/artifacts/" },
+        { "app": "com.mitchellh.ghostty" },
+        { "app": "com.google.Chrome" }
+      ],
+      "layouts": ["leftNarrow", "centerWideAgentic", "rightNarrow"]
     }
   },
   "workspaceGroups": {
     "n": ["comms", "web"],
-    "m": ["webdev", "androiddev"]
+    "m": ["webdev", "androiddev"],
+    "a": ["agentic"]
   },
   "layouts": {
     "ultrawide": {
@@ -79,7 +89,11 @@
       "rightTwoThirds": { "x": 860, "y": 0, "w": 2580, "h": 1440 },
       "leftHalf": { "x": 0, "y": 0, "w": 1720, "h": 1440 },
       "rightHalf": { "x": 1720, "y": 0, "w": 1720, "h": 1440 },
-      "centerFocus": { "x": 1120, "y": 0, "w": 1200, "h": 1440 }
+      "centerFocus": { "x": 1120, "y": 0, "w": 1200, "h": 1440 },
+      "centerWide": { "x": 720, "y": 0, "w": 2000, "h": 1440 },
+      "leftNarrow": { "x": 0, "y": 0, "w": 700, "h": 1440 },
+      "centerWideAgentic": { "x": 700, "y": 0, "w": 2040, "h": 1440 },
+      "rightNarrow": { "x": 2740, "y": 0, "w": 700, "h": 1440 }
     }
   },
   "logging": {
