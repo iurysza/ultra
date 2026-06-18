@@ -5,6 +5,8 @@
 local logger = require("src.logger")
 local M = {}
 
+local spotifyBundleID = "com.spotify.client"
+
 --- Check if an app is running
 --- @param bundleID string The bundle identifier
 --- @return boolean True if app is running
@@ -153,11 +155,17 @@ function M.executeAppleScript(script)
   return ok
 end
 
---- Toggle media playback (Play/Pause)
-function M.togglePlayPause()
-  logger.debug("Toggling Play/Pause")
-  hs.eventtap.event.newSystemKeyEvent("PLAY", true):post()
-  hs.eventtap.event.newSystemKeyEvent("PLAY", false):post()
+--- Toggle Spotify playback without affecting other media apps
+function M.toggleSpotifyPlayPause()
+  logger.debug("Toggling Spotify Play/Pause")
+
+  if not isAppRunning(spotifyBundleID) then
+    logger.info("Launching Spotify")
+    hs.application.launchOrFocusByBundleID(spotifyBundleID)
+    return
+  end
+
+  M.executeAppleScript('tell application "Spotify" to playpause')
 end
 
 return M

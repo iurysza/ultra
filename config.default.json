@@ -15,12 +15,12 @@
     }
   },
   "launchers": [
-    { "key": "F1", "action": "playPause", "name": "Play/Pause" },
+    { "key": "F1", "action": "spotifyPlayPause", "name": "Spotify Play/Pause" },
     { "key": "F2", "app": "com.mitchellh.ghostty", "name": "Ghostty" },
     { "key": "F3", "app": "com.todesktop.230313mzl4w4u92", "name": "Cursor" },
     { "key": "F4", "app": "com.spotify.client", "name": "Spotify" },
     { "key": "F8", "app": "com.tinyspeck.slackmacgap", "name": "Slack" },
-    { "key": "F9", "appName": "Android Studio", "name": "Android Studio" },
+    { "key": "F9", "app": "ai.opencode.desktop", "name": "OpenCode" },
     { "key": "F10", "app": "md.obsidian", "name": "Obsidian" },
     { "key": "F11", "appRef": "browser", "name": "Browser" },
     { "key": "F12", "app": "net.whatsapp.WhatsApp", "name": "WhatsApp" },

@@ -103,12 +103,12 @@ Two-thirds splits:
 
 | Key   | App                 |
 | ----- | ------------------- |
-| `F1`  | Play/Pause          |
+| `F1`  | Spotify Play/Pause  |
 | `F2`  | Ghostty             |
 | `F3`  | Cursor              |
 | `F4`  | Spotify             |
 | `F8`  | Slack               |
-| `F9`  | Android Studio      |
+| `F9`  | OpenCode            |
 | `F10` | Obsidian            |
 | `F11` | Browser (env-aware) |
 | `F12` | WhatsApp            |

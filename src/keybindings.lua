@@ -26,11 +26,11 @@ local function setupLaunchers()
     local key = launcher.key
     local name = launcher.name or key
 
-    if launcher.action == "playPause" then
-      -- Special action: play/pause
+    if launcher.action == "spotifyPlayPause" then
+      -- Special action: Spotify play/pause
       hs.hotkey.bind(hyper, key, function()
-        logger.debug("Keybinding: Hyper+" .. key .. " (Play/Pause)")
-        appLauncher.togglePlayPause()
+        logger.debug("Keybinding: Hyper+" .. key .. " (Spotify Play/Pause)")
+        appLauncher.toggleSpotifyPlayPause()
       end)
     elseif launcher.appleScript then
       -- AppleScript action
