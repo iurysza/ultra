@@ -89,8 +89,7 @@ end)
 displayWatcher:start()
 
 -- Watch for config file changes (auto-reload)
-hs.pathwatcher
-  .new(ultraDir, function(files)
+local configWatcher = hs.pathwatcher.new(ultraDir, function(files)
     local doReload = false
     for _, file in pairs(files) do
       if file:match("%.lua$") or file:match("config%.json$") then
@@ -102,8 +101,9 @@ hs.pathwatcher
       logger.info("Configuration files changed, reloading...")
       hs.reload()
     end
-  end)
-  :start()
+  end
+)
+configWatcher:start()
 
 logger.info("Watchers started (display config, file changes)")
 logger.info("Initialization complete")
