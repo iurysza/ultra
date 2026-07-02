@@ -122,6 +122,7 @@ Two-thirds splits:
 | --- | ----------------- | ----------------------------------------- | ------------- |
 | `N` | Comms ↔ Web      | Slack/WhatsApp + Meet + Browser           | 3-way         |
 | `M` | Coding ↔ Android | Cursor/Android Studio + Ghostty + Browser | 3-way / 50-50 |
+| `A` | Agentic           | Zen (artifacts) + Ghostty + Chrome        | 3-way / 50-50 fallback |
 
 Workspaces auto-minimize non-workspace windows and position apps.
 

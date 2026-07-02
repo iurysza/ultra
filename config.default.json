@@ -71,7 +71,8 @@
         { "app": "com.mitchellh.ghostty" },
         { "app": "com.google.Chrome" }
       ],
-      "layouts": ["leftNarrow", "centerWideAgentic", "rightNarrow"]
+      "layouts": ["leftNarrow", "centerWideAgentic", "rightNarrow"],
+      "fallbackLayouts": ["leftHalf", "rightHalf"]
     }
   },
   "workspaceGroups": {
