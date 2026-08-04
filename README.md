@@ -133,12 +133,16 @@ Hostname-based detection:
 - **Browser**: Chrome (work) / Zen (personal)
 - **Communication**: Slack (work) / WhatsApp (personal)
 
-### App-Specific Keys (Obsidian)
+### App-specific keys
 
 When Obsidian is frontmost:
 
 - `Ctrl+hjkl` → Arrow keys (vim nav)
 - `Cmd+\`` → Forward delete
+
+When Google Chrome is frontmost:
+
+- `Cmd+1` → Toggle the vertical-tab sidebar (replaces Chrome's first-tab shortcut)
 
 ---
 
