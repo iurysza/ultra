@@ -36,6 +36,29 @@ local function hasVisibleWindows(bundleID)
   return windows and #windows > 0
 end
 
+--- @return hs.screen
+local function getActiveScreen()
+  local focusedWindow = hs.window.focusedWindow()
+  return (focusedWindow and focusedWindow:screen()) or hs.mouse.getCurrentScreen()
+    or hs.screen.mainScreen()
+end
+
+--- Restore minimized windows for one app on the active display.
+--- @param app hs.application
+local function restoreWindowsOnActiveScreen(app)
+  local activeScreen = getActiveScreen()
+
+  for _, window in ipairs(app:allWindows()) do
+    local windowScreen = window:screen()
+    if window:isMinimized()
+        and windowScreen
+        and windowScreen:getUUID() == activeScreen:getUUID() then
+      logger.debug("Un-minimizing window for: " .. app:name())
+      window:unminimize()
+    end
+  end
+end
+
 --- Toggle an application (smart launch/focus/minimize)
 --- Behavior:
 --- 1. Not running → Launch app
@@ -59,11 +82,7 @@ function M.toggleApp(bundleID)
     -- If app is frontmost but has no visible windows, un-minimize instead
     if #visibleWindows == 0 then
       logger.info("App is frontmost but no visible windows, un-minimizing")
-      for _, window in ipairs(app:allWindows()) do
-        if window:isMinimized() then
-          window:unminimize()
-        end
-      end
+      restoreWindowsOnActiveScreen(app)
       app:activate()
       return
     end
@@ -81,13 +100,7 @@ function M.toggleApp(bundleID)
   logger.info(string.format("Focusing app: %s", bundleID))
   local app = hs.application.get(bundleID)
   if app then
-    -- Un-minimize all windows before activating
-    for _, window in ipairs(app:allWindows()) do
-      if window:isMinimized() then
-        logger.debug("Un-minimizing window for: " .. app:name())
-        window:unminimize()
-      end
-    end
+    restoreWindowsOnActiveScreen(app)
     app:activate()
   else
     hs.application.launchOrFocusByBundleID(bundleID)
@@ -114,11 +127,7 @@ function M.toggleAppByName(appName)
     -- If app is frontmost but has no visible windows, un-minimize instead
     if #visibleWindows == 0 then
       logger.info("App is frontmost but no visible windows, un-minimizing")
-      for _, window in ipairs(app:allWindows()) do
-        if window:isMinimized() then
-          window:unminimize()
-        end
-      end
+      restoreWindowsOnActiveScreen(app)
       app:activate()
       return
     end
@@ -134,13 +143,7 @@ function M.toggleAppByName(appName)
 
   -- App is running but not frontmost → un-minimize and focus it
   logger.info(string.format("Focusing app: %s", appName))
-  -- Un-minimize all windows before activating
-  for _, window in ipairs(app:allWindows()) do
-    if window:isMinimized() then
-      logger.debug("Un-minimizing window for: " .. app:name())
-      window:unminimize()
-    end
-  end
+  restoreWindowsOnActiveScreen(app)
   app:activate()
 end
 
