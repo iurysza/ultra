@@ -17,7 +17,7 @@ local chromeSidebarLabels = {
   ["collapse tabs"] = true,
 }
 
-local chromeSidebarButton = nil
+-- Chrome AX controls belong to one window, so never reuse a button across windows.
 local chromeSidebarSearch = nil
 
 --- Setup Obsidian-specific keybindings
@@ -107,38 +107,32 @@ local function toggleChromeSidebar()
     return
   end
 
-  if chromeSidebarButton then
-    local ok, valid = pcall(function()
-      return chromeSidebarButton:isValid()
-    end)
-    if ok and valid then
-      pressChromeSidebarButton(chromeSidebarButton)
-      return
-    end
-    chromeSidebarButton = nil
-  end
-
-  if chromeSidebarSearch and chromeSidebarSearch:isRunning() then
-    return
-  end
-
   local root = hs.axuielement.applicationElement(chrome):attributeValue("AXFocusedWindow")
   if not root then
     logger.warn("Chrome's focused window is unavailable")
     return
   end
 
-  -- Chromium's sidebar button is normally 8–10 AX levels below the window.
-  chromeSidebarSearch = root:elementSearch(function(_, elements)
-    chromeSidebarSearch = nil
-    chromeSidebarButton = elements[1]
+  if chromeSidebarSearch and chromeSidebarSearch:isRunning() then
+    chromeSidebarSearch:cancel("superseded by a newer Chrome sidebar request")
+  end
 
-    if chromeSidebarButton then
-      pressChromeSidebarButton(chromeSidebarButton)
+  -- Chromium's sidebar button is normally 8–10 AX levels below the window.
+  local search
+  search = root:elementSearch(function(_, elements)
+    if chromeSidebarSearch ~= search then
+      return
+    end
+
+    chromeSidebarSearch = nil
+    local button = elements[1]
+    if button then
+      pressChromeSidebarButton(button)
     else
       logger.warn("Chrome vertical-tab sidebar button not found")
     end
   end, isChromeSidebarButton, { count = 1, depth = 15 })
+  chromeSidebarSearch = search
 end
 
 --- Setup Chrome-specific keybindings
