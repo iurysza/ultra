@@ -115,6 +115,26 @@ function M.getProportionalLayout(position, frame)
   return layout
 end
 
+--- Get equal-width column frame on a screen
+--- @param screen hs.screen Screen object
+--- @param index number 1-based column index
+--- @param count number Total columns
+--- @return table|nil Frame {x, y, w, h}
+function M.getColumnFrame(screen, index, count)
+  if not screen or not index or not count or count < 1 or index < 1 or index > count then
+    return nil
+  end
+
+  local frame = screen:frame()
+  local width = frame.w / count
+  return {
+    x = frame.x + ((index - 1) * width),
+    y = frame.y,
+    w = width,
+    h = frame.h,
+  }
+end
+
 --- Get all available layout names for a screen
 --- @param screen hs.screen Screen object
 --- @return table Array of layout names

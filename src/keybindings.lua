@@ -148,6 +148,16 @@ function M.setup()
     wm.minimizeAll()
   end)
 
+  hs.hotkey.bind(hyper, "6", function()
+    logger.debug("Keybinding: Hyper+6 (split app windows on current display and Space)")
+    wm.splitAppWindows(false)
+  end)
+
+  hs.hotkey.bind(hyper, "7", function()
+    logger.debug("Keybinding: Hyper+7 (gather and split all app windows)")
+    wm.splitAppWindows(true)
+  end)
+
   hs.hotkey.bind(hyper, "f", function()
     logger.debug("Keybinding: Hyper+F (focus mode)")
     wm.focusMode()

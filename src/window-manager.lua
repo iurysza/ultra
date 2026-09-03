@@ -10,6 +10,13 @@ local M = {}
 -- Cycle state tracking (per display + window count)
 local cycleState = {}
 
+-- Keep one filter alive from startup so it learns windows as their Spaces are visited.
+-- Hammerspoon cannot discover windows in unvisited Spaces immediately after reload.
+local windowFilter = hs.window.filter
+-- luacheck: ignore 122
+windowFilter.forceRefreshOnSpaceChange = true
+local allWindowsFilter = windowFilter.new(true)
+
 --- Position focused window to specified layout
 --- @param position string Layout position name
 function M.positionWindow(position)
@@ -76,6 +83,219 @@ function M.moveToDisplay(direction)
   -- Maximize on new screen
   local frame = targetScreen:frame()
   win:setFrame(frame)
+end
+
+--- Check whether a window is standard and can be repositioned
+--- @param win hs.window Window object
+--- @return boolean
+local function isEligibleWindow(win)
+  return win:isStandard() and not win:isMinimized()
+end
+
+--- Check whether a window is assigned to a Space
+--- @param win hs.window Window object
+--- @param targetSpace number Space ID
+--- @return boolean
+local function isWindowInSpace(win, targetSpace)
+  local spaces, err = hs.spaces.windowSpaces(win)
+  if not spaces then
+    logger.warn(
+      string.format(
+        "splitAppWindows: could not get Spaces for '%s': %s",
+        win:title(),
+        err or "unknown error"
+      )
+    )
+    return false
+  end
+
+  for _, space in ipairs(spaces) do
+    if space == targetSpace then
+      return true
+    end
+  end
+
+  return false
+end
+
+--- Move the focused window to the first item in a list
+--- @param windows hs.window[]
+--- @param focusedWin hs.window
+local function putFocusedWindowFirst(windows, focusedWin)
+  for index, win in ipairs(windows) do
+    if win == focusedWin then
+      table.remove(windows, index)
+      table.insert(windows, 1, win)
+      return
+    end
+  end
+end
+
+--- Get standard, non-minimized windows of an app on one display and Space
+--- @param appName string
+--- @param screen hs.screen
+--- @param targetSpace number
+--- @return hs.window[]
+local function getScopedAppWindows(appName, screen, targetSpace)
+  local matchingWindows = {}
+
+  for _, win in ipairs(hs.window.visibleWindows()) do
+    local app = win:application()
+    if
+      isEligibleWindow(win)
+      and app
+      and app:name() == appName
+      and win:screen() == screen
+      and isWindowInSpace(win, targetSpace)
+    then
+      table.insert(matchingWindows, win)
+    end
+  end
+
+  return matchingWindows
+end
+
+--- Get known standard, non-minimized windows of an app across displays and Spaces
+--- @param appName string
+--- @return hs.window[]
+local function getAllAppWindows(appName)
+  local matchingWindows = {}
+  for _, win in ipairs(allWindowsFilter:getWindows()) do
+    local app = win:application()
+    if isEligibleWindow(win) and app and app:name() == appName then
+      table.insert(matchingWindows, win)
+    end
+  end
+
+  return matchingWindows
+end
+
+--- Gather windows on the target display and Space
+--- @param windows hs.window[]
+--- @param targetScreen hs.screen
+--- @param targetSpace number
+--- @return hs.window[] Windows confirmed on the target display and Space
+--- @return number Number of windows that could not be gathered
+local function gatherAppWindows(windows, targetScreen, targetSpace)
+  local gatheredWindows = {}
+  local failedGatherings = 0
+
+  for _, win in ipairs(windows) do
+    if win:screen() ~= targetScreen then
+      win:moveToScreen(targetScreen)
+    end
+
+    local moveFailed = false
+    if not isWindowInSpace(win, targetSpace) then
+      local moved, err = hs.spaces.moveWindowToSpace(win, targetSpace)
+      if not moved then
+        moveFailed = true
+        logger.error(
+          string.format(
+            "splitAppWindows: failed to move '%s' to Space %d: %s",
+            win:title(),
+            targetSpace,
+            err or "unknown error"
+          )
+        )
+      end
+    end
+
+    if win:screen() == targetScreen and isWindowInSpace(win, targetSpace) then
+      table.insert(gatheredWindows, win)
+    else
+      failedGatherings = failedGatherings + 1
+      if not moveFailed then
+        logger.error(
+          string.format(
+            "splitAppWindows: '%s' did not arrive on the target display and Space",
+            win:title()
+          )
+        )
+      end
+    end
+  end
+
+  return gatheredWindows, failedGatherings
+end
+
+--- Tile windows as equal-width columns on a display
+--- @param windows hs.window[]
+--- @param screen hs.screen
+local function tileWindowsInColumns(windows, screen)
+  for index, win in ipairs(windows) do
+    local frame = layouts.getColumnFrame(screen, index, #windows)
+    if frame then
+      win:setFrame(frame)
+    end
+  end
+end
+
+--- Split standard, non-minimized windows of the focused app
+--- @param gatherAll boolean Whether to gather windows from every display and Space
+function M.splitAppWindows(gatherAll)
+  local focusedWin = hs.window.focusedWindow()
+  if not focusedWin or not focusedWin:isStandard() then
+    logger.warn("splitAppWindows: no focused standard window")
+    hs.alert.show("No focused standard window")
+    return
+  end
+
+  local app = focusedWin:application()
+  local screen = displays.getCurrentDisplay(focusedWin)
+  local targetSpace = hs.spaces.focusedSpace()
+  local appName = app and app:name()
+  if not appName or not screen or not targetSpace then
+    logger.error("splitAppWindows: could not resolve app, display, or Space")
+    hs.alert.show("Could not detect display or Space")
+    return
+  end
+
+  local windows = gatherAll and getAllAppWindows(appName)
+    or getScopedAppWindows(appName, screen, targetSpace)
+  if #windows < 2 then
+    logger.info("splitAppWindows: fewer than two eligible app windows")
+    hs.alert.show("Need 2 app windows")
+    return
+  end
+
+  putFocusedWindowFirst(windows, focusedWin)
+
+  local failedGatherings = 0
+  if gatherAll then
+    local candidateCount = #windows
+    windows, failedGatherings = gatherAppWindows(windows, screen, targetSpace)
+    if #windows < 2 then
+      logger.warn(
+        string.format(
+          "splitAppWindows: gathered %d of %d app windows; %d failed",
+          #windows,
+          candidateCount,
+          failedGatherings
+        )
+      )
+      hs.alert.show(
+        string.format(
+          "Only %d of %d app windows gathered; %d failed",
+          #windows,
+          candidateCount,
+          failedGatherings
+        )
+      )
+      return
+    end
+  end
+
+  putFocusedWindowFirst(windows, focusedWin)
+  tileWindowsInColumns(windows, screen)
+
+  local mode = gatherAll and "gathered" or "scoped"
+  logger.info(string.format("Split %d %s app windows", #windows, mode))
+  if failedGatherings > 0 then
+    hs.alert.show(string.format("Split %d gathered windows; %d failed", #windows, failedGatherings))
+  else
+    hs.alert.show(string.format("Split %d app windows", #windows))
+  end
 end
 
 --- Get cycle state key for current display + window count

@@ -3,6 +3,7 @@
 ---@class hs
 ---@field alert hs.alert
 ---@field screen hs.screen
+---@field spaces hs.spaces
 ---@field window hs.window
 ---@field application hs.application
 ---@field hotkey hs.hotkey
@@ -60,6 +61,23 @@ function hs.screen:currentMode() end
 ---@return string
 function hs.screen:id() end
 
+---@class hs.spaces
+hs.spaces = {}
+
+---@return integer
+function hs.spaces.focusedSpace() end
+
+---@param window hs.window
+---@return integer[]|nil
+---@return string|nil
+function hs.spaces.windowSpaces(window) end
+
+---@param window hs.window
+---@param spaceID integer
+---@return boolean|nil
+---@return string|nil
+function hs.spaces.moveWindowToSpace(window, spaceID) end
+
 ---@class hs.window
 hs.window = {}
 
@@ -72,9 +90,8 @@ function hs.window.allWindows() end
 ---@return hs.window[]
 function hs.window.orderedWindows() end
 
----@param hints? table
 ---@return hs.window[]
-function hs.window.filter.default:getWindows(hints) end
+function hs.window.visibleWindows() end
 
 ---@return string
 function hs.window:title() end
@@ -309,6 +326,17 @@ hs.processInfo = {}
 
 ---@class hs.window.filter
 hs.window.filter = {}
+
+---@type boolean
+hs.window.filter.forceRefreshOnSpaceChange = false
+
+---@param default? boolean
+---@return hs.window.filter
+function hs.window.filter.new(default) end
+
+---@param hints? table
+---@return hs.window[]
+function hs.window.filter:getWindows(hints) end
 
 ---@field default hs.window.filter
 hs.window.filter.default = {}

@@ -94,10 +94,15 @@ Two-thirds splits:
 | `1`   | Mission Control (all windows)  |
 | `2`   | App Exposé (current app)       |
 | `3`   | Minimize all (show desktop)    |
+| `6`   | Split same-app windows on the current display and Space |
+| `7`   | Gather and split known same-app windows from all displays and visited Spaces |
 | `f`   | Focus mode (center + minimize) |
 | `[/]` | Move to left/right display     |
 | `4`   | Cycle input source (keyboard)  |
 | `r`   | Reload config                  |
+
+Ultra learns windows in other Spaces as you visit them after a reload. Hammerspoon cannot
+discover windows in Spaces that have not been visited since that reload.
 
 ### App Launchers
 
