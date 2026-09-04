@@ -148,6 +148,7 @@ When Obsidian is frontmost:
 When Google Chrome is frontmost:
 
 - `Cmd+1` → Toggle the vertical-tab sidebar (replaces Chrome's first-tab shortcut)
+- `Ctrl+Shift+G` → Delete the tab group of the active tab (configurable via `appKeys.chrome.deleteGroup` in `config.json`)
 
 ---
 

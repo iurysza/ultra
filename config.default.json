@@ -28,6 +28,11 @@
     { "key": ";", "appName": "MstyStudio", "name": "Msty" },
     { "key": "5", "appleScript": "tell application \"System Events\" to tell process \"scrcpy\" to set frontmost to true", "name": "scrcpy" }
   ],
+  "appKeys": {
+    "chrome": {
+      "deleteGroup": { "mods": ["ctrl", "shift"], "key": "G" }
+    }
+  },
   "workspaces": {
     "comms": {
       "name": "Communication",

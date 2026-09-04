@@ -76,6 +76,11 @@
             "name": "scrcpy"
         }
     ],
+    "appKeys": {
+        "chrome": {
+            "deleteGroup": { "mods": ["ctrl", "shift"], "key": "G" }
+        }
+    },
     "workspaces": {
         "comms": {
             "name": "Communication",
