@@ -231,7 +231,27 @@ local function tileWindowsInColumns(windows, screen)
   end
 end
 
---- Split standard, non-minimized windows of the focused app
+--- Minimize visible standard windows that are not being split
+--- @param splitWindows hs.window[]
+--- @return number Number of windows minimized
+local function minimizeOtherWindows(splitWindows)
+  local splitWindowIds = {}
+  for _, win in ipairs(splitWindows) do
+    splitWindowIds[win:id()] = true
+  end
+
+  local minimizedCount = 0
+  for _, win in ipairs(hs.window.visibleWindows()) do
+    if isEligibleWindow(win) and not splitWindowIds[win:id()] then
+      win:minimize()
+      minimizedCount = minimizedCount + 1
+    end
+  end
+
+  return minimizedCount
+end
+
+--- Split standard, non-minimized windows of the focused app and minimize all others
 --- @param gatherAll boolean Whether to gather windows from every display and Space
 function M.splitAppWindows(gatherAll)
   local focusedWin = hs.window.focusedWindow()
@@ -288,13 +308,30 @@ function M.splitAppWindows(gatherAll)
 
   putFocusedWindowFirst(windows, focusedWin)
   tileWindowsInColumns(windows, screen)
+  local minimizedCount = minimizeOtherWindows(windows)
 
   local mode = gatherAll and "gathered" or "scoped"
-  logger.info(string.format("Split %d %s app windows", #windows, mode))
+  logger.info(
+    string.format(
+      "Split %d %s app windows; minimized %d other windows",
+      #windows,
+      mode,
+      minimizedCount
+    )
+  )
   if failedGatherings > 0 then
-    hs.alert.show(string.format("Split %d gathered windows; %d failed", #windows, failedGatherings))
+    hs.alert.show(
+      string.format(
+        "Split %d gathered windows; minimized %d others; %d failed",
+        #windows,
+        minimizedCount,
+        failedGatherings
+      )
+    )
   else
-    hs.alert.show(string.format("Split %d app windows", #windows))
+    hs.alert.show(
+      string.format("Split %d app windows; minimized %d others", #windows, minimizedCount)
+    )
   end
 end
 
