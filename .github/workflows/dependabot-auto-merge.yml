@@ -1,0 +1,39 @@
+# Arms GitHub auto-merge on Dependabot pull requests.
+# `gh pr merge --auto` returns after enabling the merge. GitHub squash-merges
+# the pull request only after required status checks pass. Semver-major
+# updates stay open.
+
+name: Dependabot auto-merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable squash auto-merge
+        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          method="$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest.mergeMethod // ""')"
+          if [ "$method" = "SQUASH" ]; then
+            echo "Squash auto-merge is already enabled."
+            exit 0
+          fi
+          gh pr merge --auto --squash "$PR_URL"

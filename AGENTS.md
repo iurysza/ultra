@@ -44,7 +44,7 @@ Remove the Hammerspoon bootstrap and the `notify-claude` symlink:
 
 LuaLS uses `.luarc.json` and `types/hs.lua`. `.editorconfig` matches the StyLua indent.
 
-This repository has no GitHub Actions workflow. `./scripts/format.sh` and `./scripts/lint.sh` are the quality gate.
+`.github/workflows/dependabot-auto-merge.yml` squash-merges non-major Dependabot pull requests after required checks pass. `./scripts/format.sh` and `./scripts/lint.sh` are the quality gate.
 
 Reload the running config with Hyper+R. Follow logs with `tail -f ~/.config/ultra/debug.log`.
 
