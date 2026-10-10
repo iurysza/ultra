@@ -59,6 +59,7 @@ function M.moveToDisplay(direction)
   local currentScreen = displays.getCurrentDisplay(win)
   if not currentScreen then
     logger.error("moveToDisplay: could not get current display")
+    hs.alert.show("Can't tell which display this window is on")
     return
   end
 

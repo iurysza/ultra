@@ -127,6 +127,16 @@ function M.setup()
     wm.moveToDisplay("right")
   end)
 
+  hs.hotkey.bind(hyper, "left", function()
+    logger.debug("Keybinding: Hyper+Left (move to left display)")
+    wm.moveToDisplay("left")
+  end)
+
+  hs.hotkey.bind(hyper, "right", function()
+    logger.debug("Keybinding: Hyper+Right (move to right display)")
+    wm.moveToDisplay("right")
+  end)
+
   -- Utility shortcuts
   hs.hotkey.bind(hyper, "\\", function()
     logger.debug("Keybinding: Hyper+\\ (organize windows)")

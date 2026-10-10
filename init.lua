@@ -79,14 +79,18 @@ _G.notifications = notifications
 hs.alert.show("Ultra Window Manager Loaded", 5)
 logger.info("Window Manager loaded successfully")
 
--- Watch for display changes
+-- Watch for display changes. macOS fires several events while a monitor
+-- connects, so wait for them to settle, then reload to rebuild all state.
+local displayReloadTimer = hs.timer.delayed.new(2, function()
+  logger.info("Displays settled, reloading Ultra")
+  hs.reload()
+end)
 local displayWatcher = hs.screen.watcher.new(function()
-  logger.info("Display configuration changed, updating...")
-  local newDisplays = displays.getAllDisplays()
-  logger.info(string.format("Now have %d display(s)", #newDisplays))
-  hs.alert.show("Display configuration updated", 5)
+  logger.info(string.format("Display configuration changed (%d screens)", #hs.screen.allScreens()))
+  displayReloadTimer:start()
 end)
 displayWatcher:start()
+_G.ultraDisplayWatcher = displayWatcher
 
 -- Watch for config file changes (auto-reload)
 local configWatcher = hs.pathwatcher.new(ultraDir, function(files)

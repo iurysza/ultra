@@ -83,6 +83,19 @@ function M.getCurrentDisplay(window)
   end
 
   local screen = window:screen()
+  if not screen then
+    -- Fallback: match window centre against a fresh screen list
+    local f = window:frame()
+    local cx, cy = f.x + f.w / 2, f.y + f.h / 2
+    for _, s in ipairs(hs.screen.allScreens()) do
+      local sf = s:fullFrame()
+      if cx >= sf.x and cx < sf.x + sf.w and cy >= sf.y and cy < sf.y + sf.h then
+        screen = s
+        break
+      end
+    end
+    screen = screen or hs.screen.mainScreen()
+  end
   if screen then
     local mode = screen:currentMode()
     logger.debug(string.format("Current display: %s (%dx%d)", screen:name(), mode.w, mode.h))
@@ -115,20 +128,37 @@ end
 --- @param currentScreen hs.screen Current screen (optional, uses focused window's screen)
 --- @return hs.screen|nil Screen in the specified direction or nil
 function M.findDisplayByPosition(direction, currentScreen)
-  currentScreen = currentScreen or hs.window.focusedWindow():screen()
-
   if not currentScreen then
     logger.warn("findDisplayByPosition: no current screen")
     return nil
   end
 
+  -- Fresh list every call, ordered left-to-right then top-to-bottom.
+  -- Avoids stale screen objects and geometry quirks after a monitor is replugged.
+  local screens = hs.screen.allScreens()
+  table.sort(screens, function(a, b)
+    local fa, fb = a:fullFrame(), b:fullFrame()
+    if fa.x ~= fb.x then
+      return fa.x < fb.x
+    end
+    return fa.y < fb.y
+  end)
+
+  local currentIndex
+  for i, s in ipairs(screens) do
+    if s:id() == currentScreen:id() then
+      currentIndex = i
+      break
+    end
+  end
+
   local targetScreen
-  if direction == "left" then
-    -- Try west, then north, then previous (cycle fallback)
-    targetScreen = currentScreen:toWest() or currentScreen:toNorth() or currentScreen:previous()
+  if #screens < 2 or not currentIndex then
+    targetScreen = nil
+  elseif direction == "left" then
+    targetScreen = screens[(currentIndex - 2) % #screens + 1]
   elseif direction == "right" then
-    -- Try east, then south, then next (cycle fallback)
-    targetScreen = currentScreen:toEast() or currentScreen:toSouth() or currentScreen:next()
+    targetScreen = screens[currentIndex % #screens + 1]
   else
     logger.error(string.format("findDisplayByPosition: invalid direction '%s'", direction))
     return nil
