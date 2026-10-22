@@ -13,15 +13,6 @@ local chromeHotkeys = {}
 local appWatcher = nil
 
 -- Chrome's active UI language is English (en-US).
-local chromeSidebarLabels = {
-  ["expand tabs"] = true,
-  ["collapse tabs"] = true,
-}
-
--- Chrome AX controls belong to one window, so never reuse a button across windows.
-local chromeSidebarSearch = nil
-
--- Chrome's active UI language is English (en-US).
 local chromeRemoveFromGroupTitle = "remove from group"
 local chromePartOfGroupPattern = "%- Part of (.-) %-"
 
@@ -190,62 +181,19 @@ local function setupObsidianKeys()
   end
 end
 
---- @param element hs.axuielement
---- @return boolean
-local function isChromeSidebarButton(element)
-  if element:attributeValue("AXRole") ~= "AXButton" then
-    return false
-  end
-
-  local title = string.lower(tostring(element:attributeValue("AXTitle") or ""))
-  local description = string.lower(tostring(element:attributeValue("AXDescription") or ""))
-  return chromeSidebarLabels[title] or chromeSidebarLabels[description]
-end
-
---- @param button hs.axuielement
-local function pressChromeSidebarButton(button)
-  local ok, err = button:performAction("AXPress")
-  if ok then
-    logger.debug("Chrome vertical-tab sidebar toggled")
-  else
-    logger.warn("Could not toggle Chrome vertical-tab sidebar: " .. tostring(err))
-  end
-end
-
---- Toggle Chrome's native vertical-tab sidebar through the macOS Accessibility API.
+--- Toggle Chrome's vertical-tab sidebar via View > Collapse Vertical Tabs.
+--- Uses the menu item, not a synthetic keystroke, because the physical Cmd+1
+--- is still held down when this runs.
 local function toggleChromeSidebar()
   local chrome = hs.application.frontmostApplication()
   if not chrome or chrome:bundleID() ~= "com.google.Chrome" then
     return
   end
-
-  local root = hs.axuielement.applicationElement(chrome):attributeValue("AXFocusedWindow")
-  if not root then
-    logger.warn("Chrome's focused window is unavailable")
-    return
+  if not chrome:selectMenuItem({ "View", "Collapse Vertical Tabs" }) then
+    logger.warn("Chrome 'Collapse Vertical Tabs' menu item not found")
   end
-
-  if chromeSidebarSearch and chromeSidebarSearch:isRunning() then
-    chromeSidebarSearch:cancel("superseded by a newer Chrome sidebar request")
-  end
-
-  -- Chromium's sidebar button is normally 8–10 AX levels below the window.
-  local search
-  search = root:elementSearch(function(_, elements)
-    if chromeSidebarSearch ~= search then
-      return
-    end
-
-    chromeSidebarSearch = nil
-    local button = elements[1]
-    if button then
-      pressChromeSidebarButton(button)
-    else
-      logger.warn("Chrome vertical-tab sidebar button not found")
-    end
-  end, isChromeSidebarButton, { count = 1, depth = 15 })
-  chromeSidebarSearch = search
 end
+
 
 --- Delete the tab group holding Chrome's active tab by dissolving it: every
 --- tab of the group is removed from it through the tab context menu, which
