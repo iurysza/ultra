@@ -110,10 +110,10 @@ discover windows in Spaces that have not been visited since that reload.
 | ----- | ------------------- |
 | `F1`  | Spotify Play/Pause  |
 | `F2`  | Ghostty             |
-| `F3`  | Cursor              |
+| `F3`  | Herdr               |
 | `F4`  | Spotify             |
 | `F8`  | Slack               |
-| `F9`  | OpenCode            |
+| `F9`  | Grok Bot            |
 | `F10` | Obsidian            |
 | `F11` | Browser (env-aware) |
 | `F12` | WhatsApp            |
